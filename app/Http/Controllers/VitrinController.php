@@ -13,6 +13,27 @@ class VitrinController extends Controller
     // Ana sayfa - ürün listesi
     public function index(Request $request)
     {
+        // Anasayfa dinamik içerik: öne çıkanlar
+        $oneCikanKategoriler = collect();
+        $oneCikanUrunler = collect();
+        try {
+            $ayarlar = \App\Models\SiteAyar::pluck('deger', 'anahtar')->toArray();
+            if (!empty($ayarlar['anasayfa_onecikan_kategoriler'])) {
+                $ids = array_filter(explode(',', $ayarlar['anasayfa_onecikan_kategoriler']));
+                if (!empty($ids)) {
+                    $oneCikanKategoriler = Kategori::whereIn('id', $ids)->get();
+                }
+            }
+            if (!empty($ayarlar['anasayfa_onecikan_urunler'])) {
+                $idsu = array_filter(explode(',', $ayarlar['anasayfa_onecikan_urunler']));
+                if (!empty($idsu)) {
+                    $oneCikanUrunler = Urun::whereIn('id', $idsu)->get();
+                }
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
         $query = Urun::query()->with(['kategori', 'marka']);
         $seciliKategori = null;
         $altKategoriler = collect();
@@ -124,7 +145,9 @@ class VitrinController extends Controller
             'kategoriAgaci',
             'seciliKategori',
             'altKategoriler',
-            'breadcrumbs'
+            'breadcrumbs',
+            'oneCikanKategoriler',
+            'oneCikanUrunler'
         ));
     }
 

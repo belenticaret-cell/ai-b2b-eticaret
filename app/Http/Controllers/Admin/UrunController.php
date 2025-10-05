@@ -16,7 +16,7 @@ class UrunController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Urun::with(['kategori', 'marka']);
+    $query = Urun::with(['kategori', 'marka'])->withCount('bayiFiyatlari');
 
         // Gelişmiş Filtreleme
         if ($request->filled('search')) {

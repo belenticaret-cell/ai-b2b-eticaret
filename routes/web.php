@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\SayfaYonetimController;
 use App\Http\Controllers\Admin\XMLController;
 use App\Http\Controllers\Admin\AIController;
 use App\Http\Controllers\Admin\BarkodController;
+use App\Http\Controllers\Admin\AnasayfaController;
+use App\Http\Controllers\Admin\BayiController;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
 use App\Http\Controllers\SayfaController;
@@ -89,6 +92,31 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/admin/urun/{urun}', [AdminUrunController::class, 'update'])->name('admin.urun.update');
     Route::delete('/admin/urun/{urun}', [AdminUrunController::class, 'destroy'])->name('admin.urun.destroy');
     Route::post('/admin/urun/toplu-islem', [AdminUrunController::class, 'bulkAction'])->name('admin.urun.bulk');
+    // Ürün Bazlı Bayi Fiyat Yönetimi
+    Route::post('/admin/urun/{urun}/bayi-fiyat', function(\App\Models\Urun $urun, \Illuminate\Http\Request $request) {
+        $data = $request->validate([
+            'bayi_id' => ['required','exists:bayiler,id'],
+            'fiyat' => ['required','numeric','min:0'],
+            'iskonto_orani' => ['nullable','numeric','min:0','max:100'],
+            'baslangic_tarihi' => ['nullable','date'],
+            'bitis_tarihi' => ['nullable','date','after_or_equal:baslangic_tarihi'],
+        ]);
+        $payload = array_merge($data, ['urun_id' => $urun->id]);
+        // Unique(bayi_id, urun_id) için upsert benzeri mantık
+        $existing = \App\Models\BayiFiyat::where('urun_id',$urun->id)->where('bayi_id',$data['bayi_id'])->first();
+        if ($existing) {
+            $existing->update($payload);
+        } else {
+            \App\Models\BayiFiyat::create($payload);
+        }
+        return back()->with('success', 'Bayi fiyatı kaydedildi.');
+    })->name('admin.urun.bayi-fiyat.kaydet');
+
+    Route::delete('/admin/urun/{urun}/bayi-fiyat/{id}', function(\App\Models\Urun $urun, $id) {
+        $kayit = \App\Models\BayiFiyat::where('urun_id',$urun->id)->where('id',$id)->firstOrFail();
+        $kayit->delete();
+        return back()->with('success', 'Bayi fiyatı silindi.');
+    })->name('admin.urun.bayi-fiyat.sil');
     
     // Mağaza Yönetimi (CRUD + Entegrasyon)
     Route::get('/admin/magaza', [AdminMagazaController::class, 'index'])->name('admin.magaza.index');
@@ -107,6 +135,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/site-ayarlari', [SiteAyarController::class, 'guncelle'])->name('admin.site-ayarlari.guncelle');
     Route::post('/admin/site-ayarlari/yeni', [SiteAyarController::class, 'yeniAyar'])->name('admin.site-ayarlari.yeni');
     Route::delete('/admin/site-ayarlari/{id}', [SiteAyarController::class, 'sil'])->name('admin.site-ayarlari.sil');
+
+    // Anasayfa Yönetimi
+    Route::get('/admin/anasayfa', [AnasayfaController::class, 'index'])->name('admin.anasayfa');
+    Route::post('/admin/anasayfa', [AnasayfaController::class, 'guncelle'])->name('admin.anasayfa.guncelle');
     
     // Sayfa Yönetimi
     Route::get('/admin/sayfalar', [SayfaYonetimController::class, 'index'])->name('admin.sayfalar');
@@ -119,6 +151,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // XML içe/dışa aktarma
     Route::post('/admin/xml/import', [XMLController::class, 'import'])->name('admin.xml.import');
     Route::get('/admin/xml/export', [XMLController::class, 'export'])->name('admin.xml.export');
+
+    // Bayi Yönetimi
+    Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');
+    Route::get('/admin/bayiler/yeni', [BayiController::class, 'create'])->name('admin.bayi.create');
+    Route::post('/admin/bayiler', [BayiController::class, 'store'])->name('admin.bayi.store');
+    Route::get('/admin/bayiler/{bayi}', [BayiController::class, 'show'])->name('admin.bayi.show');
+    Route::get('/admin/bayiler/{bayi}/duzenle', [BayiController::class, 'edit'])->name('admin.bayi.edit');
+    Route::put('/admin/bayiler/{bayi}', [BayiController::class, 'update'])->name('admin.bayi.update');
+    Route::delete('/admin/bayiler/{bayi}', [BayiController::class, 'destroy'])->name('admin.bayi.destroy');
 });
 
 // B2B Login 

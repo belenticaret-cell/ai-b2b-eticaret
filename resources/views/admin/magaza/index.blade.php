@@ -1,41 +1,44 @@
-@extends('layouts.app')
+@extends('admin.layouts.app')
+
+@section('title', 'Mağazalar')
+@section('page-title', 'Mağaza Yönetimi')
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 m-0">Mağazalar</h1>
-        <a href="{{ route('admin.magaza.create') }}" class="btn btn-primary">Yeni Mağaza</a>
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h2 class="text-xl font-semibold">Mağazalar</h2>
+        <a href="{{ route('admin.magaza.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Yeni Mağaza</a>
     </div>
 
     @if (session('status'))
-        <div class="alert alert-success">{{ session('status') }}</div>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">{{ session('status') }}</div>
     @endif
 
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
                 <tr>
-                    <th>#</th>
-                    <th>Ad</th>
-                    <th>Platform</th>
-                    <th>API Anahtarı</th>
-                    <th></th>
+                    <th class="px-4 py-2 text-left">#</th>
+                    <th class="px-4 py-2 text-left">Ad</th>
+                    <th class="px-4 py-2 text-left">Platform</th>
+                    <th class="px-4 py-2 text-left">API Anahtarı</th>
+                    <th class="px-4 py-2"></th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($magazalar as $m)
-                    <tr>
-                        <td>{{ $m->id }}</td>
-                        <td>{{ $m->ad }}</td>
-                        <td>{{ $m->platform ?? '—' }}</td>
-                        <td><code>{{ $m->api_anahtari ? Str::limit($m->api_anahtari, 20) : '—' }}</code></td>
-                        <td class="text-end">
-                            <a href="{{ route('admin.magaza.edit', $m) }}" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                    <tr class="border-t">
+                        <td class="px-4 py-2">{{ $m->id }}</td>
+                        <td class="px-4 py-2">{{ $m->ad }}</td>
+                        <td class="px-4 py-2">{{ $m->platform ?? '—' }}</td>
+                        <td class="px-4 py-2"><code>{{ $m->api_anahtari ? Str::limit($m->api_anahtari, 20) : '—' }}</code></td>
+                        <td class="px-4 py-2 text-right">
+                            <a href="{{ route('admin.magaza.edit', $m) }}" class="px-3 py-1 bg-white border rounded hover:bg-gray-50 text-sm">Düzenle</a>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center">Kayıt bulunamadı.</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-500">Kayıt bulunamadı.</td>
                     </tr>
                 @endforelse
             </tbody>

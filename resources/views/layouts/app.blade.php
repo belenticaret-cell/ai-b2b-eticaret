@@ -25,6 +25,15 @@
         <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
     <body class="bg-gray-50">
+        <!-- Top announcement bar -->
+        @if(!empty($siteAyarlar['anasayfa_duyuru']))
+        <div class="bg-blue-600 text-white text-sm">
+            <div class="container mx-auto px-4 py-2 text-center">
+                {{ $siteAyarlar['anasayfa_duyuru'] }}
+            </div>
+        </div>
+        @endif
+
         <!-- Header -->
         <header class="bg-white shadow-sm">
             <nav class="container mx-auto px-4 py-4">
@@ -53,6 +62,7 @@
                     <!-- Navigation -->
                     <div class="hidden md:flex items-center space-x-6">
                         <a href="{{ route('vitrin.index') }}" class="text-gray-700 hover:text-blue-600 transition">Ana Sayfa</a>
+                        <a href="{{ route('vitrin.urunler') }}" class="text-gray-700 hover:text-blue-600 transition">Ürünler</a>
                         <a href="{{ route('sayfa.hakkimizda') }}" class="text-gray-700 hover:text-blue-600 transition">Hakkımızda</a>
                         <a href="{{ route('sayfa.iletisim') }}" class="text-gray-700 hover:text-blue-600 transition">İletişim</a>
                         
@@ -72,7 +82,17 @@
                         
                         <!-- B2B/Admin Links -->
                         <div class="flex items-center space-x-2">
-                            <a href="/b2b-login" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition">B2B Giriş</a>
+                            @auth
+                                @if(auth()->user()->rol === 'bayi')
+                                    <a href="{{ route('bayi.urunler') }}" class="bg-blue-600 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-700 transition">Bayi Ürünleri</a>
+                                    <a href="{{ route('b2b.panel') }}" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-md text-sm hover:bg-blue-200 transition">B2B Panel</a>
+                                @endif
+                                @if(auth()->user()->rol === 'admin')
+                                    <a href="{{ route('admin.panel') }}" class="bg-gray-800 text-white px-3 py-2 rounded-md text-sm hover:bg-black transition">Admin</a>
+                                @endif
+                            @else
+                                <a href="/b2b-login" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition">B2B Giriş</a>
+                            @endauth
                         </div>
                     </div>
                     
@@ -90,13 +110,45 @@
                 <div class="md:hidden mt-4" x-data="{ open: false }" @toggle-mobile-menu.window="open = !open" x-show="open" x-transition>
                     <div class="space-y-2">
                         <a href="{{ route('vitrin.index') }}" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Ana Sayfa</a>
+                        <a href="{{ route('vitrin.urunler') }}" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Ürünler</a>
                         <a href="{{ route('sayfa.hakkimizda') }}" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Hakkımızda</a>
                         <a href="{{ route('sayfa.iletisim') }}" class="block px-3 py-2 text-gray-700 hover:text-blue-600">İletişim</a>
                         <a href="{{ route('sepet.index') }}" class="block px-3 py-2 text-gray-700 hover:text-blue-600">Sepet @if($adetToplam)({{ $adetToplam }})@endif</a>
-                        <a href="/b2b-login" class="block px-3 py-2 bg-blue-600 text-white rounded-md text-center">B2B Giriş</a>
+                        @auth
+                            @if(auth()->user()->rol === 'bayi')
+                                <a href="{{ route('bayi.urunler') }}" class="block px-3 py-2 bg-blue-600 text-white rounded-md text-center">Bayi Ürünleri</a>
+                                <a href="{{ route('b2b.panel') }}" class="block px-3 py-2 bg-blue-100 text-blue-700 rounded-md text-center">B2B Panel</a>
+                            @endif
+                            @if(auth()->user()->rol === 'admin')
+                                <a href="{{ route('admin.panel') }}" class="block px-3 py-2 bg-gray-800 text-white rounded-md text-center">Admin</a>
+                            @endif
+                        @else
+                            <a href="/b2b-login" class="block px-3 py-2 bg-blue-600 text-white rounded-md text-center">B2B Giriş</a>
+                        @endauth
+                        @auth
+                            @if(auth()->user()->rol === 'admin')
+                                <a href="{{ route('admin.panel') }}" class="block px-3 py-2 bg-gray-800 text-white rounded-md text-center">Admin</a>
+                            @endif
+                        @endauth
                     </div>
                 </div>
             </nav>
+            @php
+                // Basit kategori mega menü satırı (üst navbar altında)
+                $kategoriCizelge = [];
+                try {
+                    $kategoriCizelge = \App\Models\Kategori::aktif()->whereNull('parent_id')->orderBy('sira')->limit(8)->get();
+                } catch (\Throwable $e) { $kategoriCizelge = []; }
+            @endphp
+            @if(!empty($kategoriCizelge) && count($kategoriCizelge))
+            <div class="border-t bg-white">
+                <div class="container mx-auto px-4 py-2 flex flex-wrap gap-4 text-sm">
+                    @foreach($kategoriCizelge as $kat)
+                        <a href="{{ route('vitrin.kategori.slug', $kat->slug) }}" class="text-gray-700 hover:text-blue-600">{{ $kat->ad }}</a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </header>
 
         <!-- Alert Messages -->
