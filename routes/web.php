@@ -23,6 +23,7 @@ Route::get('/vitrin', [VitrinController::class, 'index'])->name('vitrin.home');
 
 Route::get('/vitrin/urunler', [VitrinController::class, 'urunler'])->name('vitrin.urunler');
 Route::get('/vitrin/arama', [VitrinController::class, 'arama'])->name('vitrin.arama');
+Route::get('/kategori/{slug}', [VitrinController::class, 'kategoriSlug'])->name('vitrin.kategori.slug');
 
 Route::get('/vitrin/urun/{id}', [VitrinController::class, 'urunDetay'])->name('vitrin.urun-detay');
 

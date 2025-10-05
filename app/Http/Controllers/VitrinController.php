@@ -14,10 +14,29 @@ class VitrinController extends Controller
     public function index(Request $request)
     {
         $query = Urun::query()->with(['kategori', 'marka']);
+        $seciliKategori = null;
+        $altKategoriler = collect();
+        $breadcrumbs = [];
         
         // Kategori filtresi
         if ($request->kategori_id) {
-            $query->where('kategori_id', $request->kategori_id);
+            $seciliKategori = Kategori::with('parent', 'children')->find($request->kategori_id);
+            if ($seciliKategori) {
+                // Seçili kategori ve tüm alt kategorilerindeki ürünleri dahil et
+                $altTum = $seciliKategori->getAllChildren()->pluck('id')->all();
+                $ids = array_unique(array_merge([$seciliKategori->id], $altTum));
+                $query->whereIn('kategori_id', $ids);
+                // Alt kategori listesi
+                $altKategoriler = $seciliKategori->children()->aktif()->orderBy('sira')->get();
+                // Breadcrumbs
+                $bc = [];
+                $cur = $seciliKategori;
+                while ($cur) {
+                    array_unshift($bc, $cur);
+                    $cur = $cur->parent;
+                }
+                $breadcrumbs = $bc;
+            }
         }
         
         // Marka filtresi
@@ -78,8 +97,16 @@ class VitrinController extends Controller
             }
         }
         
-        // Filtre bilgileri
+        // Filtre ve menü için kategoriler
         $kategoriler = Kategori::orderBy('ad')->get();
+        $kategoriAgaci = Kategori::aktif()->whereNull('parent_id')
+            ->with(['children' => function($q){
+                $q->aktif()->orderBy('sira');
+            }, 'children.children' => function($q){
+                $q->aktif()->orderBy('sira');
+            }])
+            ->orderBy('sira')
+            ->get();
         $markalar = Marka::orderBy('ad')->get();
 
         // Site ayarları
@@ -88,7 +115,17 @@ class VitrinController extends Controller
             $siteAyarlar = \App\Models\SiteAyar::pluck('deger', 'anahtar')->toArray();
         }
 
-        return view('vitrin.index', compact('urunler', 'urunMagazalari', 'kategoriler', 'markalar', 'siteAyarlar'));
+        return view('vitrin.index', compact(
+            'urunler',
+            'urunMagazalari',
+            'kategoriler',
+            'markalar',
+            'siteAyarlar',
+            'kategoriAgaci',
+            'seciliKategori',
+            'altKategoriler',
+            'breadcrumbs'
+        ));
     }
 
     // Ürün detay
@@ -150,6 +187,14 @@ class VitrinController extends Controller
     // Kategori sayfası
     public function kategori(Kategori $kategori, Request $request)
     {
+        $request->merge(['kategori_id' => $kategori->id]);
+        return $this->index($request);
+    }
+
+    // Kategori slug ile
+    public function kategoriSlug(string $slug, Request $request)
+    {
+        $kategori = Kategori::where('slug', $slug)->firstOrFail();
         $request->merge(['kategori_id' => $kategori->id]);
         return $this->index($request);
     }

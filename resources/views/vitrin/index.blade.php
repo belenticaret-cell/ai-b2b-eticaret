@@ -65,7 +65,7 @@
 <!-- Products Section -->
 <section class="py-16 bg-gray-50">
     <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex justify-between items-center mb-4">
             <h2 class="text-3xl font-bold">
                 @if(request('q'))
                     "{{ request('q') }}" için Arama Sonuçları
@@ -80,8 +80,53 @@
                 <span class="text-gray-600">{{ $urunler->total() }} ürün bulundu</span>
             @endif
         </div>
+
+        @if(!empty($breadcrumbs))
+            <nav class="text-sm text-gray-600 mb-6">
+                <ol class="list-reset flex">
+                    <li><a href="{{ route('vitrin.index') }}" class="hover:underline">Anasayfa</a></li>
+                    @foreach($breadcrumbs as $i => $bc)
+                        <li class="mx-2">/</li>
+                        <li>
+                            @if($i < count($breadcrumbs)-1)
+                                <a href="{{ route('vitrin.kategori.slug', $bc->slug) }}" class="hover:underline">{{ $bc->ad }}</a>
+                            @else
+                                <span class="font-semibold">{{ $bc->ad }}</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ol>
+            </nav>
+        @endif
         
-        <!-- Filters -->
+        <!-- Filters + Alt Kategoriler -->
+        @if(isset($altKategoriler) && $altKategoriler->count())
+            <div class="mb-6 flex flex-wrap gap-2">
+                @foreach($altKategoriler as $alt)
+                    <a href="{{ route('vitrin.kategori.slug', $alt->slug) }}" class="px-3 py-1 bg-white rounded border hover:bg-gray-50 text-sm">{{ $alt->ad }}</a>
+                @endforeach
+            </div>
+        @endif
+
+        @if(isset($kategoriAgaci) && $kategoriAgaci->count())
+            <details class="mb-4 bg-white rounded border p-4">
+                <summary class="cursor-pointer font-semibold">Kategoriler</summary>
+                <div class="mt-3 grid md:grid-cols-3 gap-4 text-sm">
+                    @foreach($kategoriAgaci as $ana)
+                        <div>
+                            <div class="mb-1 font-semibold"><a href="{{ route('vitrin.kategori.slug', $ana->slug) }}" class="hover:underline">{{ $ana->ad }}</a></div>
+                            @if($ana->children && $ana->children->count())
+                                <ul class="ml-3 list-disc text-gray-700">
+                                    @foreach($ana->children as $alt)
+                                        <li><a href="{{ route('vitrin.kategori.slug', $alt->slug) }}" class="hover:underline">{{ $alt->ad }}</a></li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </details>
+        @endif
         <div class="bg-white rounded-lg shadow p-6 mb-8">
             <form method="GET" action="{{ route('vitrin.index') }}" class="space-y-4 md:space-y-0 md:flex md:items-end md:space-x-4">
                 <!-- Search -->
