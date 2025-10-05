@@ -18,4 +18,9 @@ class Bayi extends Model
     {
         return $this->belongsTo(Kullanici::class);
     }
+
+    public function fiyatlar()
+    {
+        return $this->hasMany(BayiFiyat::class);
+    }
 }

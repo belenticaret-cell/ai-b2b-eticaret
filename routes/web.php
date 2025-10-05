@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\BarkodController;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
 use App\Http\Controllers\SayfaController;
+use App\Http\Controllers\B2B\BayiUrunController;
 
 // Ana sayfa
 Route::get('/', [VitrinController::class, 'index'])->name('vitrin.index');
@@ -63,6 +64,9 @@ Route::middleware(['auth', 'bayi'])->group(function () {
     Route::get('/bayi/panel', function () {
         return view('bayi.panel');
     })->name('bayi.panel');
+
+    // Bayi fiyatlı ürün listesi
+    Route::get('/bayi/urunler', [BayiUrunController::class, 'index'])->name('bayi.urunler');
 });
 
 // Admin Paneli
