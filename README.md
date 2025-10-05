@@ -2,6 +2,28 @@
 
 Modern Laravel 12 tabanlı kapsamlı B2B/B2C e-ticaret platformu. Çoklu platform entegrasyonu, AI destekli ürün yönetimi ve gelişmiş API altyapısı ile.
 
+## ⚡ Hızlı Başlangıç (Bu Repo)
+
+1) Bağımlılıklar: `composer install` ve `npm ci`
+2) Ortam dosyası: `cp .env.example .env` ve `php artisan key:generate`
+3) Veritabanı (SQLite): `type NUL > database\\database.sqlite`, `.env` → `DB_CONNECTION=sqlite`, `DB_DATABASE=database/database.sqlite`
+4) Migration/Seed: `php artisan migrate --force` ve `php artisan db:seed --force`
+5) Geliştirme sunucusu: `php artisan serve --host=127.0.0.1 --port=9000`
+
+### Demo Hesaplar
+- Admin: `admin@aib2b.local` / `Admin123!`
+- Bayi: `bayi@aib2b.local` / `Bayi123!`
+- Müşteri: `musteri@aib2b.local` / `Musteri123!`
+
+### Hızlı Giriş (yalnızca local ortam)
+- `/dev-login/admin` → Admin panel
+- `/dev-login/bayi` → B2B panel
+- `/dev-login/musteri` → Vitrin
+- `/dev-logout` → Çıkış
+
+### CI
+Bu repo için GitHub Actions ile temel PHP build/test pipeline’ı eklenebilir. Test DB’si olarak SQLite kullanılır ve `php artisan migrate --force` ile şema kurulur.
+
 ## 🚀 Özellikler
 
 ### 🛍️ E-Ticaret Özellikleri

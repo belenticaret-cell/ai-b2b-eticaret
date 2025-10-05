@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, "release/*", "snapshot/*", "feature/*" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      sqlite:
+        image: ubuntu:22.04
+        options: >-
+          --name sqlite
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Generate key
+        run: php artisan key:generate
+
+      - name: Prepare SQLite
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+          php -r "file_exists('.env') || exit(1);"
+          sed -i "s/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/" .env
+          sed -i "s|^DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|" .env
+
+      - name: Run Migrations
+        run: php artisan migrate --force
+
+      - name: Run Tests
+        run: php artisan test --colors=always
+
+      - name: Lint (optional)
+        if: always()
+        run: |
+          php -v
+          composer validate --no-check-publish
