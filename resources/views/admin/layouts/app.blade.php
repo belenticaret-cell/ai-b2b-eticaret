@@ -119,6 +119,32 @@
                             </a>
                         </div>
                     </div>
+
+                    <!-- Kategoriler -->
+                    <div x-data="{ open: {{ request()->routeIs('admin.kategori.*') ? 'true' : 'false' }} }">
+                        <button @click="open = !open" 
+                                class="flex items-center justify-between w-full px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm3 3h6v2H7V6zm0 4h6v2H7v-2zm0 4h6v2H7v-2z"></path>
+                                </svg>
+                                Kategori Yönetimi
+                            </div>
+                            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': open }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open" x-transition class="ml-8 space-y-1">
+                            <a href="{{ route('admin.kategori.index') }}" 
+                               class="block px-4 py-2 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.kategori.index') ? 'text-white' : '' }}">
+                                Kategori Ağacı
+                            </a>
+                            <a href="{{ route('admin.kategori.create') }}" 
+                               class="block px-4 py-2 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.kategori.create') ? 'text-white' : '' }}">
+                                Yeni Kategori
+                            </a>
+                        </div>
+                    </div>
                     
                     <!-- Site Ayarları -->
                     <a href="{{ route('admin.site-ayarlari') }}" 

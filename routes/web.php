@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AIController;
 use App\Http\Controllers\Admin\BarkodController;
 use App\Http\Controllers\Admin\AnasayfaController;
 use App\Http\Controllers\Admin\BayiController;
+use App\Http\Controllers\Admin\KategoriController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
@@ -151,6 +152,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // XML içe/dışa aktarma
     Route::post('/admin/xml/import', [XMLController::class, 'import'])->name('admin.xml.import');
     Route::get('/admin/xml/export', [XMLController::class, 'export'])->name('admin.xml.export');
+
+    // Kategori Yönetimi
+    Route::get('/admin/kategoriler', [KategoriController::class, 'index'])->name('admin.kategori.index');
+    Route::get('/admin/kategoriler/yeni', [KategoriController::class, 'create'])->name('admin.kategori.create');
+    Route::post('/admin/kategoriler', [KategoriController::class, 'store'])->name('admin.kategori.store');
+    Route::get('/admin/kategoriler/{kategori}/duzenle', [KategoriController::class, 'edit'])->name('admin.kategori.edit');
+    Route::put('/admin/kategoriler/{kategori}', [KategoriController::class, 'update'])->name('admin.kategori.update');
+    Route::delete('/admin/kategoriler/{kategori}', [KategoriController::class, 'destroy'])->name('admin.kategori.destroy');
 
     // Bayi Yönetimi
     Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');

@@ -31,6 +31,7 @@ Bu repo için GitHub Actions ile temel PHP build/test pipeline’ı eklenebilir.
 - **B2B Panel**: Bayiler için özel fiyatlandırma ve toplu sipariş
 - **Session-tabanlı Sepet**: Hızlı ve güvenli sepet yönetimi
 - **Gelişmiş Ürün Yönetimi**: Kategori, marka, özellik yönetimi
+- **Kategori Yönetimi (Admin)**: Ağaç yapısı, ebeveyn/çocuk ilişkileri, sıra, durum ve SEO alanları
 - **Stok ve Fiyat Takibi**: Otomatik stok kontrolü ve fiyat güncellemeleri
 
 ### 🔗 Platform Entegrasyonları
@@ -50,6 +51,7 @@ Bu repo için GitHub Actions ile temel PHP build/test pipeline’ı eklenebilir.
 ### 📊 B2B Özellikleri
 - **Bayi Yönetimi**: Çoklu bayi desteği ve yetkilendirme
 - **Özel Fiyatlandırma**: Bayi-specific fiyat listeleri
+- **Bayi Onboarding**: Admin’den bayi kaydı sırasında opsiyonel kullanıcı (rol: bayi) ve geçici şifre oluşturma; başarı mesajında B2B giriş linki iletilir
 - **Toplu Sipariş**: API destekli bulk order sistemi
 - **Kredi Limiti**: Bayi kredi takibi ve vade yönetimi
 - **Cari Hesap**: Detaylı finansal raporlama
