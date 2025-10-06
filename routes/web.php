@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\BayiController;
 use App\Http\Controllers\Admin\KategoriController;
 use App\Http\Controllers\Admin\ModulController;
 use App\Http\Controllers\Admin\MarkaController;
+use App\Http\Controllers\Admin\OzellikController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
@@ -181,6 +182,22 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
 
     // Bayi Yönetimi
+    // Marka Yönetimi
+    Route::get('/admin/markalar', [MarkaController::class, 'index'])->name('admin.marka.index');
+    Route::get('/admin/markalar/yeni', [MarkaController::class, 'create'])->name('admin.marka.create');
+    Route::post('/admin/markalar', [MarkaController::class, 'store'])->name('admin.marka.store');
+    Route::get('/admin/markalar/{marka}/duzenle', [MarkaController::class, 'edit'])->name('admin.marka.edit');
+    Route::put('/admin/markalar/{marka}', [MarkaController::class, 'update'])->name('admin.marka.update');
+    Route::delete('/admin/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
+
+    // Özellik Yönetimi
+    Route::get('/admin/ozellikler', [OzellikController::class, 'index'])->name('admin.ozellik.index');
+    Route::get('/admin/ozellikler/yeni', [OzellikController::class, 'create'])->name('admin.ozellik.create');
+    Route::post('/admin/ozellikler', [OzellikController::class, 'store'])->name('admin.ozellik.store');
+    Route::get('/admin/ozellikler/{ozellik}/duzenle', [OzellikController::class, 'edit'])->name('admin.ozellik.edit');
+    Route::put('/admin/ozellikler/{ozellik}', [OzellikController::class, 'update'])->name('admin.ozellik.update');
+    Route::delete('/admin/ozellikler/{ozellik}', [OzellikController::class, 'destroy'])->name('admin.ozellik.destroy');
+    Route::post('/admin/ozellikler/bulk-sil', [OzellikController::class, 'bulkDelete'])->name('admin.ozellik.bulk-delete');
     Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');
     Route::get('/admin/bayiler/yeni', [BayiController::class, 'create'])->name('admin.bayi.create');
     Route::post('/admin/bayiler', [BayiController::class, 'store'])->name('admin.bayi.store');

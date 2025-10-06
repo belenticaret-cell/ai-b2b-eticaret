@@ -150,6 +150,100 @@
             </div>
             @endif
         </header>
+        
+        @auth
+            @if(auth()->user()->rol === 'admin')
+            <!-- Admin Collapsible Navbar -->
+            <nav class="bg-white border-b" x-data="{openGroup:null}">
+                <div class="container mx-auto px-4">
+                    <ul class="flex flex-wrap gap-2 py-2 text-sm">
+                        <!-- Katalog -->
+                        <li class="relative" @mouseenter="openGroup='katalog'" @mouseleave="openGroup=null">
+                            <button type="button" class="px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-1">
+                                <span>📦 Katalog</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="absolute left-0 mt-1 w-72 bg-white shadow-lg border rounded-md z-40" x-show="openGroup==='katalog'" x-transition>
+                                <div class="p-2 grid grid-cols-1">
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.urun.index') }}">Ürünler</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.urun.create') }}">Yeni Ürün</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.kategori.index') }}">Kategoriler</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.marka.index') }}">Markalar</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.ozellik.index') }}">Özellik Yönetimi</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- İçerik -->
+                        <li class="relative" @mouseenter="openGroup='icerik'" @mouseleave="openGroup=null">
+                            <button type="button" class="px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-1">
+                                <span>📝 İçerik</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="absolute left-0 mt-1 w-72 bg-white shadow-lg border rounded-md z-40" x-show="openGroup==='icerik'" x-transition>
+                                <div class="p-2 grid grid-cols-1">
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.sayfalar') }}">Sayfalar</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.anasayfa') }}">Anasayfa Yönetimi</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Entegrasyonlar -->
+                        <li class="relative" @mouseenter="openGroup='entegrasyon'" @mouseleave="openGroup=null">
+                            <button type="button" class="px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-1">
+                                <span>🔗 Entegrasyon</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="absolute left-0 mt-1 w-80 bg-white shadow-lg border rounded-md z-40" x-show="openGroup==='entegrasyon'" x-transition>
+                                <div class="p-2 grid grid-cols-1">
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.magaza.index') }}">Mağazalar</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.moduller.entegrasyon') }}">Modül: Entegrasyon</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.moduller.entegrasyon.ayar') }}">Entegrasyon Ayarları</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.moduller') }}">Modül Yönetimi</a>
+                                    <div class="px-3 py-2 text-xs text-gray-500 border-t">XML</div>
+                                    <form action="{{ route('admin.xml.import') }}" method="POST" enctype="multipart/form-data" class="px-3 py-2 flex items-center gap-2">
+                                        @csrf
+                                        <input type="file" name="xml_file" accept=".xml" class="text-xs" required>
+                                        <input type="hidden" name="import_type" value="urun">
+                                        <button class="px-2 py-1 border rounded text-xs">İçe Aktar</button>
+                                    </form>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.xml.export', ['export_type' => 'urun']) }}">Ürün XML Dışa Aktar</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- B2B -->
+                        <li class="relative" @mouseenter="openGroup='b2b'" @mouseleave="openGroup=null">
+                            <button type="button" class="px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-1">
+                                <span>🏷️ B2B</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="absolute left-0 mt-1 w-64 bg-white shadow-lg border rounded-md z-40" x-show="openGroup==='b2b'" x-transition>
+                                <div class="p-2 grid grid-cols-1">
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.bayi.index') }}">Bayiler</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('bayi.urunler') }}">Bayi Ürün Listesi</a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Ayarlar -->
+                        <li class="relative" @mouseenter="openGroup='ayar'" @mouseleave="openGroup=null">
+                            <button type="button" class="px-3 py-2 rounded hover:bg-gray-100 flex items-center gap-1">
+                                <span>⚙️ Ayarlar</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="absolute left-0 mt-1 w-72 bg-white shadow-lg border rounded-md z-40" x-show="openGroup==='ayar'" x-transition>
+                                <div class="p-2 grid grid-cols-1">
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.site-ayarlari') }}">Site Ayarları</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.panel') }}">Yönetim Paneli</a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            @endif
+        @endauth
 
         <!-- Alert Messages -->
         @if(session('success'))
