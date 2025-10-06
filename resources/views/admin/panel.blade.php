@@ -66,6 +66,8 @@
         <a href="{{ route('admin.urun.index') }}" class="btn btn-outline-primary btn-sm">Ürünler</a>
         <a href="{{ route('admin.urun.create') }}" class="btn btn-primary btn-sm">Yeni Ürün</a>
         <a href="{{ route('admin.magaza.create') }}" class="btn btn-outline-secondary btn-sm">Mağaza Ekle</a>
+        <a href="{{ route('admin.kategori.index') }}" class="btn btn-outline-secondary btn-sm">Kategoriler</a>
+        <a href="{{ route('admin.marka.index') }}" class="btn btn-outline-secondary btn-sm">Markalar</a>
     </div>
 
     @isset($sonUrunler)

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AnasayfaController;
 use App\Http\Controllers\Admin\BayiController;
 use App\Http\Controllers\Admin\KategoriController;
 use App\Http\Controllers\Admin\ModulController;
+use App\Http\Controllers\Admin\MarkaController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
@@ -170,6 +171,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/kategoriler/{kategori}/duzenle', [KategoriController::class, 'edit'])->name('admin.kategori.edit');
     Route::put('/admin/kategoriler/{kategori}', [KategoriController::class, 'update'])->name('admin.kategori.update');
     Route::delete('/admin/kategoriler/{kategori}', [KategoriController::class, 'destroy'])->name('admin.kategori.destroy');
+
+    // Marka Yönetimi
+    Route::get('/admin/markalar', [MarkaController::class, 'index'])->name('admin.marka.index');
+    Route::get('/admin/markalar/yeni', [MarkaController::class, 'create'])->name('admin.marka.create');
+    Route::post('/admin/markalar', [MarkaController::class, 'store'])->name('admin.marka.store');
+    Route::get('/admin/markalar/{marka}/duzenle', [MarkaController::class, 'edit'])->name('admin.marka.edit');
+    Route::put('/admin/markalar/{marka}', [MarkaController::class, 'update'])->name('admin.marka.update');
+    Route::delete('/admin/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
 
     // Bayi Yönetimi
     Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');

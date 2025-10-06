@@ -258,15 +258,66 @@ class XmlController extends Controller
                     'agirlik' => (float)$urunXml->agirlik ?: null,
                 ];
 
+                // Kategori ve Marka isimden eşleştirme (varsa)
+                $kategoriAd = (string)($urunXml->kategori ?? '');
+                if ($kategoriAd !== '') {
+                    $kategori = \App\Models\Kategori::where('ad', $kategoriAd)->first();
+                    if ($kategori) {
+                        $urunData['kategori_id'] = $kategori->id;
+                    }
+                }
+                $markaAd = (string)($urunXml->marka ?? '');
+                if ($markaAd !== '') {
+                    $marka = \App\Models\Marka::firstOrCreate(
+                        ['slug' => \Illuminate\Support\Str::slug($markaAd)],
+                        ['ad' => $markaAd, 'durum' => true]
+                    );
+                    $urunData['marka_id'] = $marka->id;
+                }
+
+                // Ana resim URL (varsa)
+                if (isset($urunXml->resim) && (string)$urunXml->resim !== '') {
+                    $urunData['gorsel'] = (string)$urunXml->resim;
+                }
+
                 if ($updateExisting && $sku) {
                     $urun = Urun::where('sku', $sku)->first();
                     if ($urun) {
                         $urun->update($urunData);
+                        // Dinamik özellikler: <ozellikler><ozellik ad="Renk" birim="">Mavi</ozellik>...</ozellikler>
+                        if (isset($urunXml->ozellikler)) {
+                            $urun->ozellikler()->delete();
+                            foreach ($urunXml->ozellikler->children() as $ozellik) {
+                                $urun->ozellikler()->create([
+                                    'ad' => (string)($ozellik['ad'] ?? 'Ozellik'),
+                                    'deger' => (string)$ozellik,
+                                    'birim' => (string)($ozellik['birim'] ?? null),
+                                ]);
+                            }
+                        }
                     } else {
-                        Urun::create($urunData);
+                        $urun = Urun::create($urunData);
+                        if (isset($urunXml->ozellikler)) {
+                            foreach ($urunXml->ozellikler->children() as $ozellik) {
+                                $urun->ozellikler()->create([
+                                    'ad' => (string)($ozellik['ad'] ?? 'Ozellik'),
+                                    'deger' => (string)$ozellik,
+                                    'birim' => (string)($ozellik['birim'] ?? null),
+                                ]);
+                            }
+                        }
                     }
                 } else {
-                    Urun::create($urunData);
+                    $urun = Urun::create($urunData);
+                    if (isset($urunXml->ozellikler)) {
+                        foreach ($urunXml->ozellikler->children() as $ozellik) {
+                            $urun->ozellikler()->create([
+                                'ad' => (string)($ozellik['ad'] ?? 'Ozellik'),
+                                'deger' => (string)$ozellik,
+                                'birim' => (string)($ozellik['birim'] ?? null),
+                            ]);
+                        }
+                    }
                 }
 
                 $processed++;
