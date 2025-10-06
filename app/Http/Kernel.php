@@ -32,6 +32,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'bayi' => \App\Http\Middleware\BayiMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'module' => \App\Http\Middleware\ModuleActive::class,
         // ...existing code...
     ];
 }

@@ -203,9 +203,16 @@
                             Modül Yönetimi
                         </a>
                         <div class="ml-8 mt-2 space-y-1">
-                            <a href="{{ route('admin.moduller.entegrasyon') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.entegrasyon') ? 'text-white' : '' }}">Entegrasyon</a>
-                            <a href="{{ route('admin.moduller.kargo') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.kargo') ? 'text-white' : '' }}">Kargo</a>
-                            <a href="{{ route('admin.moduller.odeme') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.odeme') ? 'text-white' : '' }}">Ödeme</a>
+                            @php(
+                                $modAktif = [
+                                    'entegrasyon' => (bool) ($siteAyarlar['modul_entegrasyon_aktif'] ?? true),
+                                    'kargo' => (bool) ($siteAyarlar['modul_kargo_aktif'] ?? false),
+                                    'odeme' => (bool) ($siteAyarlar['modul_odeme_aktif'] ?? false),
+                                ]
+                            )
+                            <a href="{{ $modAktif['entegrasyon'] ? route('admin.moduller.entegrasyon') : '#' }}" class="block px-4 py-1 text-sm {{ $modAktif['entegrasyon'] ? 'text-gray-300 hover:text-white' : 'text-gray-500 cursor-not-allowed' }} {{ request()->routeIs('admin.moduller.entegrasyon') ? 'text-white' : '' }}">Entegrasyon</a>
+                            <a href="{{ $modAktif['kargo'] ? route('admin.moduller.kargo') : '#' }}" class="block px-4 py-1 text-sm {{ $modAktif['kargo'] ? 'text-gray-300 hover:text-white' : 'text-gray-500 cursor-not-allowed' }} {{ request()->routeIs('admin.moduller.kargo') ? 'text-white' : '' }}">Kargo</a>
+                            <a href="{{ $modAktif['odeme'] ? route('admin.moduller.odeme') : '#' }}" class="block px-4 py-1 text-sm {{ $modAktif['odeme'] ? 'text-gray-300 hover:text-white' : 'text-gray-500 cursor-not-allowed' }} {{ request()->routeIs('admin.moduller.odeme') ? 'text-white' : '' }}">Ödeme</a>
                         </div>
                     </div>
                 </div>

@@ -82,9 +82,11 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Modüller
     Route::get('/admin/moduller', [ModulController::class, 'index'])->name('admin.moduller');
     Route::post('/admin/moduller', [ModulController::class, 'guncelle'])->name('admin.moduller.guncelle');
-    Route::get('/admin/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->name('admin.moduller.entegrasyon');
-    Route::get('/admin/moduller/kargo', [ModulController::class, 'kargo'])->name('admin.moduller.kargo');
-    Route::get('/admin/moduller/odeme', [ModulController::class, 'odeme'])->name('admin.moduller.odeme');
+    Route::get('/admin/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon');
+    Route::get('/admin/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyar'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon.ayar');
+    Route::post('/admin/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyarKaydet'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon.ayar.kaydet');
+    Route::get('/admin/moduller/kargo', [ModulController::class, 'kargo'])->middleware('module:kargo')->name('admin.moduller.kargo');
+    Route::get('/admin/moduller/odeme', [ModulController::class, 'odeme'])->middleware('module:odeme')->name('admin.moduller.odeme');
 
     // AI ürün önerisi
     Route::post('/admin/ai/urun-onerisi', [AIController::class, 'urunOnerisi'])->name('admin.ai.urunOnerisi');

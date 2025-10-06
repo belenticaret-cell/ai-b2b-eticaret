@@ -71,4 +71,23 @@ class ModulController extends Controller
         $aktif = (bool) SiteAyar::get('modul_odeme_aktif', false);
         return view('admin.moduller.odeme', compact('aktif'));
     }
+
+    public function entegrasyonAyar()
+    {
+        $aktif = (bool) SiteAyar::get('modul_entegrasyon_aktif', true);
+        $ayarlar = SiteAyar::getGrup('entegrasyon') ?? [];
+        return view('admin.moduller.entegrasyon-ayar', compact('aktif','ayarlar'));
+    }
+
+    public function entegrasyonAyarKaydet(Request $request)
+    {
+        $data = $request->validate([
+            'varsayilan_platform' => ['nullable','string','max:50'],
+            'xml_cache_suresi' => ['nullable','integer','min:0'],
+        ]);
+        foreach ($data as $k=>$v) {
+            SiteAyar::set('entegrasyon_'.$k, (string)$v, 'text', 'entegrasyon');
+        }
+        return back()->with('success','Entegrasyon ayarları kaydedildi.');
+    }
 }

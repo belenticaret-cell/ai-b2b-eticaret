@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kategori;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Support\AuditLogger;
 
 class KategoriController extends Controller
 {
@@ -42,7 +43,8 @@ class KategoriController extends Controller
         $data['durum'] = $request->boolean('durum');
         $data['sira'] = $data['sira'] ?? 0;
 
-        Kategori::create($data);
+    $kat = Kategori::create($data);
+    AuditLogger::log('create','Kategori',$kat->id, ['ad'=>$kat->ad]);
         return redirect()->route('admin.kategori.index')->with('success','Kategori eklendi.');
     }
 
@@ -71,13 +73,16 @@ class KategoriController extends Controller
             unset($data['parent_id']);
         }
 
-        $kategori->update($data);
+    $kategori->update($data);
+    AuditLogger::log('update','Kategori',$kategori->id, ['ad'=>$kategori->ad]);
         return redirect()->route('admin.kategori.index')->with('success','Kategori güncellendi.');
     }
 
     public function destroy(Kategori $kategori)
     {
-        $kategori->delete();
+    $id = $kategori->id; $name = $kategori->ad;
+    $kategori->delete();
+    AuditLogger::log('delete','Kategori',$id, ['ad'=>$name]);
         return back()->with('success','Kategori silindi.');
     }
 }

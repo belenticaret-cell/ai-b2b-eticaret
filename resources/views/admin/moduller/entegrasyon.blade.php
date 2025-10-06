@@ -10,6 +10,10 @@
     @endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="{{ route('admin.moduller.entegrasyon.ayar') }}" class="block bg-white rounded shadow p-6 hover:shadow-md transition">
+            <h3 class="font-semibold mb-1">Entegrasyon Ayarları</h3>
+            <p class="text-sm text-gray-600">Varsayılan platform ve cache süresi gibi genel ayarlar.</p>
+        </a>
         <a href="{{ route('admin.magaza.index') }}" class="block bg-white rounded shadow p-6 hover:shadow-md transition">
             <h3 class="font-semibold mb-1">Mağazalar</h3>
             <p class="text-sm text-gray-600">Platform mağazaları ekleyin, test edin ve senkronize edin.</p>
