@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\BarkodController;
 use App\Http\Controllers\Admin\AnasayfaController;
 use App\Http\Controllers\Admin\BayiController;
 use App\Http\Controllers\Admin\KategoriController;
+use App\Http\Controllers\Admin\ModulController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
@@ -77,6 +78,13 @@ Route::middleware(['auth', 'bayi'])->group(function () {
 // Admin Paneli
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/panel', [DashboardController::class, 'index'])->name('admin.panel');
+
+    // Modüller
+    Route::get('/admin/moduller', [ModulController::class, 'index'])->name('admin.moduller');
+    Route::post('/admin/moduller', [ModulController::class, 'guncelle'])->name('admin.moduller.guncelle');
+    Route::get('/admin/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->name('admin.moduller.entegrasyon');
+    Route::get('/admin/moduller/kargo', [ModulController::class, 'kargo'])->name('admin.moduller.kargo');
+    Route::get('/admin/moduller/odeme', [ModulController::class, 'odeme'])->name('admin.moduller.odeme');
 
     // AI ürün önerisi
     Route::post('/admin/ai/urun-onerisi', [AIController::class, 'urunOnerisi'])->name('admin.ai.urunOnerisi');

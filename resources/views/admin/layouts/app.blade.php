@@ -191,6 +191,23 @@
                             Barkod Okuyucu
                         </a>
                     </div>
+
+                    <!-- Modüller -->
+                    <div class="pt-4 border-t border-gray-700">
+                        <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Modüller</p>
+                        <a href="{{ route('admin.moduller') }}" 
+                           class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition {{ request()->routeIs('admin.moduller*') ? 'bg-gray-700 text-white' : '' }}">
+                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3h12a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm3 3h6v2H7V6zm0 4h6v2H7v-2zm0 4h6v2H7v-2z"></path>
+                            </svg>
+                            Modül Yönetimi
+                        </a>
+                        <div class="ml-8 mt-2 space-y-1">
+                            <a href="{{ route('admin.moduller.entegrasyon') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.entegrasyon') ? 'text-white' : '' }}">Entegrasyon</a>
+                            <a href="{{ route('admin.moduller.kargo') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.kargo') ? 'text-white' : '' }}">Kargo</a>
+                            <a href="{{ route('admin.moduller.odeme') }}" class="block px-4 py-1 text-sm text-gray-300 hover:text-white {{ request()->routeIs('admin.moduller.odeme') ? 'text-white' : '' }}">Ödeme</a>
+                        </div>
+                    </div>
                 </div>
             </nav>
         </div>
