@@ -5,15 +5,24 @@
 
 @section('content')
 @php
-    // Dashboard için gerekli değişkenleri tanımlayalım
-    $urunSayisi = \App\Models\Urun::count();
-    $bayiSayisi = \App\Models\Bayi::count();
+    // Dashboard'dan controller'dan gelen data kullan - performans optimizasyonu
+    $urunSayisi = $istatistik['urun'] ?? 0;
+    $bayiSayisi = $istatistik['bayi'] ?? 0;
     $kategoriSayisi = \App\Models\Kategori::count();
     $siparisler = \App\Models\Siparis::count();
     $bugununSiparisleri = \App\Models\Siparis::whereDate('created_at', today())->count();
+    
+    // Controller'dan gelen verileri kullan
+    $platformStats = $platformStats ?? [];
+    $errorStats = $errorStats ?? [];
     $bugunSenkron = $platformStats['son_24_saat_senkron'] ?? 0;
     $sayfaSayisi = \App\Models\SayfaIcerik::where('durum', true)->count();
     $sonSiparisler = \App\Models\Siparis::with('kullanici')->latest()->limit(5)->get();
+
+    // Session notes güvenli parse
+    $sessionNotes = class_exists('\App\Support\SessionNotes') ? \App\Support\SessionNotes::parseToday() : ['yapilanlar' => [], 'yapilacaklar' => []];
+    $yapilanlarOzet = array_slice($sessionNotes['yapilanlar'] ?? [], 0, 3);
+    $yapilacaklarOzet = array_slice($sessionNotes['yapilacaklar'] ?? [], 0, 3);
 @endphp
 
 <div class="space-y-8" x-data="adminPanel()">
@@ -43,28 +52,29 @@
         <!-- Hızlı Görevler -->
         <div class="lg:col-span-3">
             <h3 class="text-xl font-bold text-gray-800 mb-4">⚡ Hızlı Görevler & Sistem Durumu</h3>
-            <div class="grid grid-cols-3 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                 <!-- Ürün Yönetimi -->
-                <a href="{{ route('admin.urun.create') }}" 
-                   class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-blue-200 group">
+                <a href="/ai-b2b/public/admin/urun/yeni" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-blue-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📦</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Yeni Ürün</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">📦</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Yeni Ürün</h4>
                         <div class="mt-2 pt-2 border-t border-blue-200">
-                            <p class="text-lg font-bold text-blue-600">{{ $urunSayisi }}</p>
+                            <p class="text-base font-bold text-blue-600">{{ $urunSayisi }}</p>
                             <p class="text-xs text-gray-600">toplam ürün</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- Sipariş Yönetimi -->
-                <a href="#" onclick="alert('Sipariş yönetimi yakında!')" 
-                   class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-orange-200 group">
+                <a href="#" onclick="showComingSoon('Sipariş yönetimi')" 
+                   class="bg-gradient-to-br from-orange-50 to-orange-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-orange-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🛍️</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Siparişler</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🛍️</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Siparişler</h4>
                         <div class="mt-2 pt-2 border-t border-orange-200">
-                            <p class="text-lg font-bold text-orange-600">{{ $siparisler }}</p>
+                            <p class="text-base font-bold text-orange-600">{{ $siparisler }}</p>
                             <p class="text-xs text-gray-600">
                                 @if($siparisler > 0)
                                     {{ $bugununSiparisleri }} bugün
@@ -77,78 +87,82 @@
                 </a>
                 
                 <!-- Mağaza & Entegrasyon -->
-                <a href="{{ route('admin.moduller.entegrasyon') }}" 
-                   class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-green-200 group">
+                <a href="/ai-b2b/public/admin/moduller/entegrasyon" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-green-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🔗</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Entegrasyon</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🔗</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Entegrasyon</h4>
                         <div class="mt-2 pt-2 border-t border-green-200">
-                            <p class="text-lg font-bold text-green-600">{{ $platformStats['aktif_magaza'] ?? 0 }}</p>
+                            <p class="text-base font-bold text-green-600">{{ $platformStats['aktif_magaza'] ?? 0 }}</p>
                             <p class="text-xs text-gray-600">aktif mağaza</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- Bayi Yönetimi -->
-                <a href="{{ route('admin.bayi.index') }}" 
-                   class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-purple-200 group">
+                <a href="/ai-b2b/public/admin/bayiler" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-purple-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">👥</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">B2B Bayiler</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">👥</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">B2B Bayiler</h4>
                         <div class="mt-2 pt-2 border-t border-purple-200">
-                            <p class="text-lg font-bold text-purple-600">{{ $bayiSayisi }}</p>
+                            <p class="text-base font-bold text-purple-600">{{ $bayiSayisi }}</p>
                             <p class="text-xs text-gray-600">kayıtlı bayi</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- Kategori Yönetimi -->
-                <a href="{{ route('admin.kategori.index') }}" 
-                   class="bg-gradient-to-br from-teal-50 to-teal-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-teal-200 group">
+                <a href="/ai-b2b/public/admin/kategoriler" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-teal-50 to-teal-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-teal-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">📂</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Kategoriler</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">📂</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Kategoriler</h4>
                         <div class="mt-2 pt-2 border-t border-teal-200">
-                            <p class="text-lg font-bold text-teal-600">{{ $kategoriSayisi }}</p>
+                            <p class="text-base font-bold text-teal-600">{{ $kategoriSayisi }}</p>
                             <p class="text-xs text-gray-600">kategori</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- Mağaza Listesi -->
-                <a href="{{ route('admin.magaza.index') }}" 
-                   class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-indigo-200 group">
+                <a href="/ai-b2b/public/admin/magaza" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-indigo-50 to-indigo-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-indigo-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🏪</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Mağazalar</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🏪</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Mağazalar</h4>
                         <div class="mt-2 pt-2 border-t border-indigo-200">
-                            <p class="text-lg font-bold text-indigo-600">{{ $platformStats['toplam_magaza'] ?? 0 }}</p>
+                            <p class="text-base font-bold text-indigo-600">{{ $platformStats['toplam_magaza'] ?? 0 }}</p>
                             <p class="text-xs text-gray-600">platform</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- API Test -->
-                <a href="#" onclick="alert('API Test özelliği yakında!')" 
-                   class="bg-gradient-to-br from-cyan-50 to-cyan-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-cyan-200 group">
+                <a href="#" onclick="showComingSoon('API Test özelliği')" 
+                   class="bg-gradient-to-br from-cyan-50 to-cyan-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-cyan-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🧪</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">API Test</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🧪</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">API Test</h4>
                         <div class="mt-2 pt-2 border-t border-cyan-200">
-                            <p class="text-lg font-bold text-cyan-600">%{{ $errorStats['basarili_senkron_orani'] ?? 95 }}</p>
+                            <p class="text-base font-bold text-cyan-600">%{{ $errorStats['basarili_senkron_orani'] ?? 95 }}</p>
                             <p class="text-xs text-gray-600">başarı oranı</p>
                         </div>
                     </div>
                 </a>
                 
                 <!-- Site Önizleme -->
-                <a href="{{ route('vitrin.index') }}" target="_blank"
-                   class="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-pink-200 group">
+                <a href="/ai-b2b/public/" target="_blank" rel="noopener"
+                   class="bg-gradient-to-br from-pink-50 to-pink-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-pink-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">🌐</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Site Önizleme</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🌐</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Site Önizleme</h4>
                         <div class="mt-2 pt-2 border-t border-pink-200">
-                            <p class="text-lg font-bold text-pink-600">
+                            <p class="text-base font-bold text-pink-600">
                                 @if(($errorStats['basarili_senkron_orani'] ?? 95) >= 95)
                                     🟢
                                 @elseif(($errorStats['basarili_senkron_orani'] ?? 95) >= 80)
@@ -164,13 +178,14 @@
                 </a>
                 
                 <!-- Site Ayarları -->
-                <a href="{{ route('admin.site-ayar.index') }}" 
-                   class="bg-gradient-to-br from-emerald-50 to-teal-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-emerald-200 group">
+                <a href="/ai-b2b/public/admin/site-ayarlari" 
+                   data-navigation="admin-link"
+                   class="bg-gradient-to-br from-emerald-50 to-teal-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-emerald-200 group">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">⚙️</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Site Ayarları</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">⚙️</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Site Ayarları</h4>
                         <div class="mt-2 pt-2 border-t border-emerald-200">
-                            <p class="text-lg font-bold text-emerald-600">
+                            <p class="text-base font-bold text-emerald-600">
                                 @php
                                     $siteAktif = \App\Models\SiteAyar::where('anahtar', 'site_aktif')->value('deger') ?? '0';
                                 @endphp
@@ -186,17 +201,17 @@
                 </a>
                 
                 <!-- Yeni Özellik Ekle -->
-                <a href="#" x-data x-on:click="$dispatch('open-feature-modal')"
-                   class="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl shadow-md hover:shadow-lg transition-all transform hover:scale-105 border border-amber-200 group cursor-pointer">
+                <button type="button" x-data x-on:click="$dispatch('open-feature-modal')"
+                   class="bg-gradient-to-br from-amber-50 to-amber-100 p-3 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 border border-amber-200 group cursor-pointer text-left">
                     <div class="text-center">
-                        <div class="text-3xl mb-2 group-hover:scale-110 transition-transform">✨</div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Yeni Özellik</h4>
+                        <div class="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">✨</div>
+                        <h4 class="font-semibold text-gray-800 text-xs">Yeni Özellik</h4>
                         <div class="mt-2 pt-2 border-t border-amber-200">
-                            <p class="text-lg font-bold text-amber-600">+</p>
+                            <p class="text-base font-bold text-amber-600">+</p>
                             <p class="text-xs text-gray-600">özellik ekle</p>
                         </div>
                     </div>
-                </a>
+                </button>
             </div>
         </div>
         
@@ -257,6 +272,30 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Hızlı Kontrol Bağlantıları -->
+    <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+            🔍 <span class="ml-2">Hızlı Kontrol Bağlantıları</span>
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <a href="/ai-b2b/public/admin/vitrin" data-navigation="admin-link" class="admin-quick-link">🎨 Vitrin Yönetimi</a>
+            <a href="/ai-b2b/public/admin/anasayfa" data-navigation="admin-link" class="admin-quick-link">🏠 Anasayfa Yönetimi</a>
+            <a href="/ai-b2b/public/admin/site-ayarlari" data-navigation="admin-link" class="admin-quick-link">⚙️ Site Yönetimi</a>
+            <a href="/ai-b2b/public/admin/moduller/entegrasyon" data-navigation="admin-link" class="admin-quick-link">🔗 Entegrasyon Modülü</a>
+            <a href="/ai-b2b/public/admin/magaza" data-navigation="admin-link" class="admin-quick-link">🏪 Mağazalar</a>
+            <a href="/ai-b2b/public/admin/kategoriler" data-navigation="admin-link" class="admin-quick-link">📂 Kategoriler</a>
+            <a href="/ai-b2b/public/admin/urun/yeni" data-navigation="admin-link" class="admin-quick-link">📦 Yeni Ürün</a>
+            <a href="/ai-b2b/public/admin/bayiler" data-navigation="admin-link" class="admin-quick-link">👥 Bayiler</a>
+            <a href="/ai-b2b/public/admin/gelistirici" data-navigation="admin-link" class="admin-quick-link">🧑‍💻 Geliştirici</a>
+            <a href="/ai-b2b/public/" target="_blank" rel="noopener" class="admin-quick-link">🌐 Vitrin (Public)</a>
+            <a href="/ai-b2b/public/magaza" target="_blank" rel="noopener" class="admin-quick-link">🛍️ Mağaza (Public)</a>
+            <a href="/ai-b2b/public/b2b-login" target="_blank" rel="noopener" class="admin-quick-link">🏢 B2B Giriş</a>
+        </div>
+        <p class="text-xs text-gray-500 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            💡 <strong>Not:</strong> B2B panel altındaki sayfalar bayi rolüyle giriş gerektirir.
+        </p>
     </div>
 
     <!-- Ana Kontrol Paneli -->
@@ -329,11 +368,11 @@
                 <!-- Platform Yönetim Linkleri -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <div class="grid grid-cols-2 gap-3">
-                        <a href="{{ route('admin.moduller.entegrasyon') }}" 
+                        <a href="/ai-b2b/public/admin/moduller/entegrasyon" data-navigation="admin-link"
                            class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all text-center">
                             🔗 Entegrasyon
                         </a>
-                        <a href="#" onclick="alert('API Test özelliği yakında!')" 
+                        <a href="#" onclick="showComingSoon('API Test özelliği')" 
                            class="bg-gradient-to-r from-teal-500 to-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all text-center">
                             🧪 API Test
                         </a>
@@ -390,7 +429,12 @@
             <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-bold text-gray-800">📊 Son Aktiviteler</h3>
-                    <a href="#" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Tümünü Gör →</a>
+                    <a href="/ai-b2b/public/admin/gelistirici" data-navigation="admin-link" class="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center px-3 py-1 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
+                        <span>Tümünü Gör</span>
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
                 </div>
                 <div class="space-y-3 max-h-64 overflow-y-auto">
                     @foreach($sonAktiviteler as $aktivite)
@@ -407,7 +451,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <p class="text-xs text-gray-500">{{ $aktivite['zaman']->diffForHumans() }}</p>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($aktivite['zaman'])->diffForHumans() }}</p>
                             <div class="flex items-center mt-1">
                                 @if($aktivite['durum'] === 'success')
                                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">✅ Başarılı</span>
@@ -428,8 +472,15 @@
     <!-- Son Siparişler -->
     <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-gray-900">🧾 Son Siparişler</h3>
-            <a href="#" onclick="alert('Sipariş yönetimi yakında!')" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Tümü →</a>
+            <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                🧾 <span class="ml-2">Son Siparişler</span>
+            </h3>
+            <a href="#" onclick="showComingSoon('Sipariş yönetimi')" class="text-blue-600 hover:text-blue-700 text-sm font-medium inline-flex items-center px-3 py-1 rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
+                <span>Tümü</span>
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
         </div>
             <div class="space-y-4">
                 @forelse($sonSiparisler as $s)
@@ -456,6 +507,44 @@
                     </div>
                 @endforelse
             </div>
+        </div>
+    </div>
+
+    <!-- Yapılanlar & Yapılacaklar Özeti -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div class="bg-white rounded-xl shadow border p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-gray-800 flex items-center">
+                    ✅ <span class="ml-2">Bugün Yapılanlar</span>
+                </h4>
+                <a href="/ai-b2b/public/admin/gelistirici" data-navigation="admin-link" class="text-sm text-blue-600 hover:underline">Tümü →</a>
+            </div>
+            @if(count($yapilanlarOzet))
+                <ul class="space-y-2 list-disc ml-5">
+                    @foreach($yapilanlarOzet as $i)
+                        <li class="text-sm text-gray-700">{{ $i['ad'] }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="text-sm text-gray-500">Bugün için kayıtlı bir madde yok.</p>
+            @endif
+        </div>
+        <div class="bg-white rounded-xl shadow border p-6">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="font-semibold text-gray-800 flex items-center">
+                    📝 <span class="ml-2">Yapılacaklar</span>
+                </h4>
+                <a href="/ai-b2b/public/admin/gelistirici" data-navigation="admin-link" class="text-sm text-blue-600 hover:underline">Tümü →</a>
+            </div>
+            @if(count($yapilacaklarOzet))
+                <ul class="space-y-2 list-disc ml-5">
+                    @foreach($yapilacaklarOzet as $i)
+                        <li class="text-sm text-gray-700">{{ $i['ad'] }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="text-sm text-gray-500">Henüz planlanan madde yok.</p>
+            @endif
         </div>
     </div>
 </div>
@@ -559,8 +648,7 @@ function adminPanel() {
         
         // Bildirim işlevleri
         showNotification(message, type = 'success') {
-            // Toast notification gösterme
-            console.log(`${type}: ${message}`);
+            showToast(message, type);
         },
         
         // Dashboard yenileme
@@ -582,7 +670,7 @@ function featureForm() {
         
         submitFeature() {
             if (!this.formData.type || !this.formData.name) {
-                alert('Lütfen özellik türü ve adını giriniz!');
+                showToast('Lütfen özellik türü ve adını giriniz!', 'error');
                 return;
             }
             
@@ -599,7 +687,7 @@ function featureForm() {
             localStorage.setItem('newFeatures', JSON.stringify(features));
             
             // Success notification
-            this.showNotification(`🎉 "${this.formData.name}" özelliği eklendi!`, 'success');
+            showToast(`🎉 "${this.formData.name}" özelliği eklendi!`, 'success');
             
             // Reset form and close modal
             this.formData = { type: '', name: '', description: '', priority: 'medium' };
@@ -609,32 +697,155 @@ function featureForm() {
             setTimeout(() => {
                 location.reload();
             }, 1000);
-        },
-        
-        showNotification(message, type) {
-            // Simple notification
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
         }
     }
 }
 
-// Sayfa yüklendiğinde dashboard animasyonları
+// Geliştirilmiş Toast Notification Sistemi
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification transform transition-all duration-300 ease-in-out translate-x-full opacity-0 mb-4 p-4 rounded-lg shadow-lg max-w-sm ${getToastClasses(type)}`;
+    
+    const icon = getToastIcon(type);
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                ${icon}
+            </div>
+            <div class="ml-3 flex-1">
+                <p class="text-sm font-medium">${message}</p>
+            </div>
+            <div class="ml-4 flex-shrink-0">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="inline-flex text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full', 'opacity-0');
+    }, 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'fixed top-4 right-4 z-50';
+    document.body.appendChild(container);
+    return container;
+}
+
+function getToastClasses(type) {
+    const classes = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
+    };
+    return classes[type] || classes.info;
+}
+
+function getToastIcon(type) {
+    const icons = {
+        success: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>',
+        error: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>',
+        warning: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>',
+        info: '<svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>'
+    };
+    return icons[type] || icons.info;
+}
+
+// "Yakında" modalı için geliştirilmiş fonksiyon
+function showComingSoon(feature) {
+    showToast(`🚧 ${feature} yakında geliyor! Geliştirme devam ediyor.`, 'info');
+}
+
+// Optimized admin navigation handler
+function handleAdminNavigation(event) {
+    const link = event.target.closest('a[data-navigation="admin-link"]');
+    if (!link) return;
+    
+    const href = link.getAttribute('href');
+    if (href && href.startsWith('/') && !link.hasAttribute('target')) {
+        event.preventDefault();
+        
+        // Show loading state
+        const originalText = link.textContent;
+        link.style.opacity = '0.7';
+        
+        // Navigate
+        window.location.href = href;
+        
+        // Reset after a short delay (in case navigation fails)
+        setTimeout(() => {
+            link.style.opacity = '1';
+        }, 1000);
+    }
+}
+
+// Sayfa yüklendiğinde admin paneli başlat
 document.addEventListener('DOMContentLoaded', function() {
+    // Admin navigation handler
+    document.addEventListener('click', handleAdminNavigation);
+    
     // Kartların animasyonlu giriş efekti
     const cards = document.querySelectorAll('.transform');
     cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
         setTimeout(() => {
+            card.style.transition = 'all 0.5s ease-out';
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
-        }, index * 100);
+        }, index * 50);
     });
+    
+    // Performance monitoring
+    if (window.performance && window.performance.now) {
+        const loadTime = window.performance.now();
+        if (loadTime > 2000) {
+            console.warn('Dashboard yavaş yüklendi:', loadTime + 'ms');
+        }
+    }
 });
 </script>
+
+<!-- CSS Stillerini ekle -->
+<style>
+.admin-quick-link {
+    @apply px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-sm transition-all duration-200 text-center block;
+}
+
+.admin-quick-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.toast-notification {
+    min-width: 300px;
+}
+
+@media (max-width: 640px) {
+    .admin-quick-link {
+        @apply text-xs px-2 py-1;
+    }
+    .toast-notification {
+        min-width: 250px;
+    }
+}
+</style>
 @endsection

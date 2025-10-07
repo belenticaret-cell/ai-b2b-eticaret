@@ -243,6 +243,13 @@
                             </svg>
                             Barkod Okuyucu
                         </a>
+                        <a href="{{ route('admin.gelistirici.index') }}" 
+                           class="flex items-center px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded-md transition {{ request()->routeIs('admin.gelistirici.*') ? 'bg-gray-700 text-white' : '' }}">
+                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 3a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V3zm3 3h6v2H7V6zm0 3h6v2H7V9zm0 3h6v2H7v-2z" />
+                            </svg>
+                            Geliştirici
+                        </a>
                     </div>
 
                     <!-- Modüller (Collapsible) -->
@@ -345,6 +352,7 @@
                                 <div class="p-2 grid grid-cols-1">
                                     <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.sayfalar') }}">Sayfalar</a>
                                     <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.anasayfa') }}">Anasayfa Yönetimi</a>
+                                    <a class="px-3 py-2 rounded hover:bg-gray-50" href="{{ route('admin.vitrin.index') }}">Vitrin Yönetimi</a>
                                     <a class="px-3 py-2 rounded hover:bg-gray-50" href="#" onclick="alert('Sistem sağlığı yakında!')">Sistem Sağlığı</a>
                                     <a class="px-3 py-2 rounded hover:bg-gray-50" href="#" onclick="alert('Sipariş yönetimi yakında!')">Siparişler</a>
                                 </div>
@@ -445,6 +453,15 @@
     
     <!-- Scripts -->
     <script>
+        // Admin sayfasında SPA yakalayıcılar varsa, data-no-spa işaretli linkleri bypass et
+        document.addEventListener('click', function(e) {
+            const a = e.target.closest('a');
+            if (!a) return;
+            if (a.hasAttribute('data-no-spa') || a.getAttribute('target') === '_blank') {
+                // Varsayılan davranışa izin ver
+                return;
+            }
+        }, { capture: true });
         function aiUrunOnerisi() {
             if (confirm('AI Ürün Önerisi almak istiyor musunuz?')) {
                 fetch('{{ route("admin.ai.urunOnerisi") }}', {

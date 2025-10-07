@@ -10,6 +10,31 @@ use Illuminate\Support\Facades\DB;
 
 class VitrinController extends Controller
 {
+    public function bayiVitrin(\App\Models\Bayi $bayi)
+    {
+        // Bu bayiyi aktif mağaza olarak session'a yaz
+        session(['aktif_bayi_id' => $bayi->id]);
+
+        // Basit placeholder: bayi mağaza ayarlarını oku
+        $prefix = 'bayi_' . $bayi->id . '_';
+        $siteAyarlar = [
+            'magaza_ad' => \App\Models\SiteAyar::get($prefix.'magaza_ad', $bayi->ad),
+            'logo_url' => \App\Models\SiteAyar::get($prefix.'logo_url'),
+            'vitrin_aktif' => \App\Models\SiteAyar::get($prefix.'vitrin_aktif', '1'),
+        ];
+
+        if (($siteAyarlar['vitrin_aktif'] ?? '1') !== '1') {
+            return redirect()->route('vitrin.index')->with('error', 'Bayi vitrini pasif.');
+        }
+
+        // Not: Gerçek senaryoda bayi’ye atanmış ürünleri çekeceğiz. Şimdilik public vitrin index’ini bayi bilgisi ile gösteriyoruz.
+        $urunler = \App\Models\Urun::aktif()->latest()->take(12)->get();
+        return view('vitrin.index', [
+            'urunler' => $urunler,
+            'bayiMagaza' => $bayi,
+            'bayiAyar' => $siteAyarlar,
+        ]);
+    }
     // Ana sayfa - ürün listesi
     public function index(Request $request)
     {

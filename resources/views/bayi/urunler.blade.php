@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.bayi.app')
 
 @section('title', 'Bayi Ürünleri')
 
@@ -19,7 +19,7 @@
     </div>
 
     <div class="grid md:grid-cols-4 gap-6">
-        @foreach($urunler as $urun)
+        @foreach(($urunler ?? []) as $urun)
         <div class="bg-white rounded-lg shadow p-4">
             <img src="{{ $urun->getAnaResim() ?? 'https://via.placeholder.com/400x300' }}" class="w-full h-40 object-cover rounded" />
             <div class="mt-3">
@@ -27,7 +27,7 @@
                 <p class="text-sm text-gray-500">SKU: {{ $urun->sku }}</p>
                 <p class="mt-2 text-gray-700">
                     <span class="text-xs text-gray-500 line-through">{{ number_format($urun->fiyat, 2) }} ₺</span>
-                    <span class="font-bold ml-2">{{ number_format($bayiFiyatlari[$urun->id] ?? $urun->fiyat, 2) }} ₺</span>
+                    <span class="font-bold ml-2">{{ number_format(($bayiFiyatlari[$urun->id] ?? $urun->fiyat), 2) }} ₺</span>
                 </p>
                 <a href="{{ route('vitrin.urun-detay', $urun->id) }}" class="inline-block mt-3 text-blue-600 hover:underline">Detay</a>
             </div>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="mt-6">
-        {{ $urunler->links() }}
+        {{ ($urunler ?? null)?->links() }}
     </div>
 </div>
 @endsection

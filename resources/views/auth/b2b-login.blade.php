@@ -7,7 +7,7 @@
             <div class="card">
                 <div class="card-header">B2B Bayi Girişi</div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('b2b.login') }}">
+                    <form method="POST" action="{{ route('login') }}">
                         @csrf
                         <div class="mb-3">
                             <label for="email" class="form-label">E-posta</label>

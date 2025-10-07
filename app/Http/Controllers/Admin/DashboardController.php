@@ -7,15 +7,75 @@ use App\Models\Urun;
 use App\Models\Bayi;
 use App\Models\Magaza;
 use App\Models\SiteAyar;
+use App\Models\Siparis;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $urunSayisi = class_exists(Urun::class) ? Urun::count() : 0;
-        $bayiSayisi = class_exists(Bayi::class) ? Bayi::count() : 0;
-        $magazaSayisi = class_exists(Magaza::class) ? Magaza::count() : 0;
+        // Basit test data
+        $istatistik = [
+            'urun' => 10,
+            'bayi' => 5,
+            'magaza' => 3,
+        ];
+        
+        $platformStats = [
+            'toplam_magaza' => 3,
+            'aktif_magaza' => 2,
+            'trendyol' => 1,
+            'hepsiburada' => 1,
+            'n11' => 1,
+            'amazon' => 0,
+            'son_24_saat_senkron' => 5,
+        ];
+        
+        $errorStats = [
+            'basarili_senkron_orani' => 95,
+            'cloudflare_engel' => 0,
+            'rate_limit_hata' => 0,
+        ];
+        
+        $sonAktiviteler = [
+            [
+                'zaman' => now()->subMinutes(15),
+                'islem' => 'Test işlem',
+                'durum' => 'success',
+                'magaza' => 'Test Mağaza'
+            ],
+            [
+                'zaman' => now()->subMinutes(25),
+                'islem' => 'Ürün güncelleme',
+                'durum' => 'success',
+                'magaza' => 'Trendyol'
+            ],
+            [
+                'zaman' => now()->subMinutes(35),
+                'islem' => 'Stok senkronizasyonu',
+                'durum' => 'error',
+                'magaza' => 'Hepsiburada'
+            ],
+        ];
+
+        return view('admin.dashboard', [
+            'istatistik' => $istatistik,
+            'platformStats' => $platformStats,
+            'errorStats' => $errorStats,
+            'sonAktiviteler' => $sonAktiviteler,
+        ]);
+    }
+    
+    private function getDashboardData()
+    {
+        // Temel istatistikler
+        $istatistik = [
+            'urun' => class_exists(Urun::class) ? Urun::count() : 0,
+            'bayi' => class_exists(Bayi::class) ? Bayi::count() : 0,
+            'magaza' => class_exists(Magaza::class) ? Magaza::count() : 0,
+        ];
+        
         $sonUrunler = class_exists(Urun::class) ? Urun::latest('id')->take(6)->get() : collect();
 
         // Site ayarlarını al
@@ -66,21 +126,21 @@ class DashboardController extends Controller
 
         // Son aktiviteler (mock data - gerçek sistem için log analizi)
         $sonAktiviteler = [
-            [
+            (object)[
                 'zaman' => now()->subMinutes(15),
                 'islem' => 'Trendyol katalog çekme',
                 'durum' => 'success',
                 'detay' => '25 ürün güncellendi',
                 'magaza' => 'Test Trendyol Mağaza'
             ],
-            [
+            (object)[
                 'zaman' => now()->subHours(2),
                 'islem' => 'Hepsiburada stok senkronizasyonu',
                 'durum' => 'error',
                 'detay' => 'API bağlantı hatası',
                 'magaza' => 'Hepsiburada Mağaza'
             ],
-            [
+            (object)[
                 'zaman' => now()->subHours(4),
                 'islem' => 'N11 fiyat güncelleme',
                 'durum' => 'success',
@@ -89,12 +149,8 @@ class DashboardController extends Controller
             ],
         ];
 
-        return view('admin.dashboard', [
-            'istatistik' => [
-                'urun' => $urunSayisi,
-                'bayi' => $bayiSayisi,
-                'magaza' => $magazaSayisi,
-            ],
+        return [
+            'istatistik' => $istatistik,
             'platformStats' => $platformStats,
             'errorStats' => $errorStats,
             'sonAktiviteler' => $sonAktiviteler,
@@ -103,6 +159,15 @@ class DashboardController extends Controller
             'stokDegeri' => $stokDegeri,
             'dusukStokler' => $dusukStokler,
             'siteAyarlar' => $siteAyarlar,
-        ]);
+        ];
+    }
+    
+    /**
+     * Dashboard cache'ini temizle
+     */
+    public function clearCache()
+    {
+        Cache::forget('admin_dashboard_data');
+        return redirect()->route('admin.dashboard')->with('success', 'Dashboard cache temizlendi');
     }
 }

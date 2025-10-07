@@ -11,16 +11,20 @@ use App\Http\Controllers\Admin\XMLController;
 use App\Http\Controllers\Admin\AIController;
 use App\Http\Controllers\Admin\BarkodController;
 use App\Http\Controllers\Admin\AnasayfaController;
+use App\Http\Controllers\Admin\VitrinController as AdminVitrinController;
 use App\Http\Controllers\Admin\BayiController;
 use App\Http\Controllers\Admin\KategoriController;
 use App\Http\Controllers\Admin\ModulController;
 use App\Http\Controllers\Admin\MarkaController;
 use App\Http\Controllers\Admin\OzellikController;
+use App\Http\Controllers\Admin\GelistiriciController;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\VitrinController;
 use App\Http\Controllers\Api\V1\SepetController as ApiSepetController;
 use App\Http\Controllers\SayfaController;
 use App\Http\Controllers\B2B\BayiUrunController;
+use App\Http\Controllers\B2B\BayiPanelController;
+use App\Http\Controllers\B2B\BayiAyarController;
 
 // Ana sayfa
 Route::get('/', [VitrinController::class, 'index'])->name('vitrin.index');
@@ -36,6 +40,8 @@ Route::get('/vitrin/arama', [VitrinController::class, 'arama'])->name('vitrin.ar
 Route::get('/kategori/{slug}', [VitrinController::class, 'kategoriSlug'])->name('vitrin.kategori.slug');
 
 Route::get('/vitrin/urun/{id}', [VitrinController::class, 'urunDetay'])->name('vitrin.urun-detay');
+// Bayi vitrini (geçici: id ile)
+Route::get('/vitrin/bayi/{bayi}', [VitrinController::class, 'bayiVitrin'])->name('vitrin.bayi');
 
 Route::get('/vitrin/sepet', [VitrinController::class, 'sepet'])->name('vitrin.sepet');
 // Sepet linki için alias (layouts.app içinde route('sepet.index') kullanılıyor)
@@ -59,10 +65,21 @@ Route::get('/kullanim-sartlari', [SayfaController::class, 'kullanimSartlari'])->
 // Auth routes
 require __DIR__.'/auth.php';
 
-// Dashboard (Auth gerekli)
+// Dashboard: rol bazlı yönlendirme (herhangi bir sebeple buraya düşülürse doğru panele taşı)
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+    $rol = auth()->user()->rol ?? null;
+    if ($rol === 'admin') {
+        return redirect()->route('admin.panel');
+    }
+    if ($rol === 'bayi') {
+        return redirect()->route('bayi.panel');
+    }
+    // müşteri veya diğer roller => public vitrin
+    return redirect()->route('vitrin.index');
+})->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -72,60 +89,80 @@ Route::middleware('auth')->group(function () {
 
 // Bayi Paneli
 Route::middleware(['auth', 'bayi'])->group(function () {
-    Route::get('/bayi/panel', function () {
-        return view('bayi.panel');
-    })->name('bayi.panel');
+    // Bayi Admin Dashboard
+    Route::get('/bayi/panel', [BayiPanelController::class, 'dashboard'])->name('bayi.panel');
 
     // Bayi fiyatlı ürün listesi
     Route::get('/bayi/urunler', [BayiUrunController::class, 'index'])->name('bayi.urunler');
+
+    // Siparişler ve detay
+    Route::get('/bayi/siparisler', [BayiPanelController::class, 'siparisler'])->name('bayi.siparisler');
+    Route::get('/bayi/siparis/{id}', [BayiPanelController::class, 'siparisDetay'])->name('bayi.siparis.detay');
+
+    // Toplu sipariş
+    Route::get('/bayi/toplu-siparis', [BayiPanelController::class, 'topluSiparis'])->name('bayi.toplu-siparis');
+
+    // Cari hesap
+    Route::get('/bayi/cari', [BayiPanelController::class, 'cariHesap'])->name('bayi.cari');
+
+    // Profil
+    Route::get('/bayi/profil', [BayiPanelController::class, 'profil'])->name('bayi.profil');
+    Route::post('/bayi/profil', [BayiPanelController::class, 'profilGuncelle'])->name('bayi.profil.guncelle');
+
+    // Bayi mağaza ayarları
+    Route::get('/bayi/ayarlar', [BayiAyarController::class, 'index'])->name('bayi.ayarlar');
+    Route::post('/bayi/ayarlar', [BayiAyarController::class, 'kaydet'])->name('bayi.ayarlar.kaydet');
 });
 
-// Admin Paneli - Geçici Auth bypass
-Route::get('/admin', [DashboardController::class, 'index'])->name('admin.index');
-Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-Route::get('/admin/panel', [DashboardController::class, 'index'])->name('admin.panel');
-Route::get('/admin/eticaret-ayarlari', [SiteAyarController::class, 'index'])->name('admin.site-ayar.index');
-Route::post('/admin/eticaret-ayarlari', [SiteAyarController::class, 'update'])->name('admin.site-ayar.update');
-Route::post('/admin/eticaret-ayarlari/toggle', [SiteAyarController::class, 'toggleSite'])->name('admin.site-ayar.toggle');
-
-// Dashboard'tan erişilen route'lar - geçici
-Route::get('/admin/urun/yeni', [AdminUrunController::class, 'create'])->name('admin.urun.create');
-Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');
-Route::get('/admin/kategoriler', [KategoriController::class, 'index'])->name('admin.kategori.index');
-Route::get('/admin/magaza', [AdminMagazaController::class, 'index'])->name('admin.magaza.index');
-Route::get('/admin/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->name('admin.moduller.entegrasyon');
-Route::get('/admin/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyar'])->name('admin.moduller.entegrasyon.ayar');
-Route::get('/admin/moduller', [ModulController::class, 'index'])->name('admin.moduller');
+// Admin Paneli - Geçici üst seviye tanımlar kaldırıldı; tüm admin rotaları prefix('admin') altında.
 
 // Admin Paneli - Authenticated Routes
+// Admin routes - basit ve etkili
 Route::prefix('admin')->group(function () {
+    // Test route
+    Route::get('/test', function() {
+        return 'Admin test route çalışıyor!';
+    });
+
+    // Panel ve Dashboard - HİÇ MİDDLEWARE YOK
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.panel');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    
+    // Geliştirici - basit
+    Route::get('/gelistirici', function() {
+        return 'Geliştirici sayfası çalışıyor!';
+    })->name('admin.gelistirici.index');
 
     // Modüller
     Route::get('/moduller', [ModulController::class, 'index'])->name('admin.moduller');
     Route::post('/moduller', [ModulController::class, 'guncelle'])->name('admin.moduller.guncelle');
-    Route::get('/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon');
-    Route::get('/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyar'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon.ayar');
-    Route::post('/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyarKaydet'])->middleware('module:entegrasyon')->name('admin.moduller.entegrasyon.ayar.kaydet');
-    Route::get('/moduller/kargo', [ModulController::class, 'kargo'])->middleware('module:kargo')->name('admin.moduller.kargo');
-    Route::get('/moduller/odeme', [ModulController::class, 'odeme'])->middleware('module:odeme')->name('admin.moduller.odeme');
+    Route::get('/moduller/entegrasyon', [ModulController::class, 'entegrasyon'])->name('admin.moduller.entegrasyon');
+    Route::get('/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyar'])->name('admin.moduller.entegrasyon.ayar');
+    Route::post('/moduller/entegrasyon/ayar', [ModulController::class, 'entegrasyonAyarKaydet'])->name('admin.moduller.entegrasyon.ayar.kaydet');
+    Route::get('/moduller/kargo', [ModulController::class, 'kargo'])->name('admin.moduller.kargo');
+    Route::get('/moduller/odeme', [ModulController::class, 'odeme'])->name('admin.moduller.odeme');
+
+    // Geliştirici
+    Route::get('/gelistirici', [GelistiriciController::class, 'index'])->name('admin.gelistirici.index');
+    Route::post('/gelistirici/not-ekle', [GelistiriciController::class, 'notEkle'])->name('admin.gelistirici.not-ekle');
 
     // AI ürün önerisi
     Route::post('/ai/urun-onerisi', [AIController::class, 'urunOnerisi'])->name('admin.ai.urunOnerisi');
 
     // Barkod ile ürün çekme
-    Route::post('/admin/barkod/fetch', [BarkodController::class, 'fetchProduct'])->name('admin.barkod.fetch');
+    Route::post('/barkod/fetch', [BarkodController::class, 'fetchProduct'])->name('admin.barkod.fetch');
 
     // Ürün Yönetimi (CRUD + Toplu İşlemler)
-    Route::get('/admin/urun', [AdminUrunController::class, 'index'])->name('admin.urun.index');
-    Route::get('/admin/urun/yeni', [AdminUrunController::class, 'create'])->name('admin.urun.create');
-    Route::post('/admin/urun/ekle', [AdminUrunController::class, 'store'])->name('admin.urun.store');
-    Route::get('/admin/urun/{urun}', [AdminUrunController::class, 'show'])->name('admin.urun.show');
-    Route::get('/admin/urun/{urun}/duzenle', [AdminUrunController::class, 'edit'])->name('admin.urun.edit');
-    Route::put('/admin/urun/{urun}', [AdminUrunController::class, 'update'])->name('admin.urun.update');
-    Route::delete('/admin/urun/{urun}', [AdminUrunController::class, 'destroy'])->name('admin.urun.destroy');
-    Route::post('/admin/urun/toplu-islem', [AdminUrunController::class, 'bulkAction'])->name('admin.urun.bulk');
+    Route::get('/urun', [AdminUrunController::class, 'index'])->name('admin.urun.index');
+    Route::get('/urun/yeni', [AdminUrunController::class, 'create'])->name('admin.urun.create');
+    Route::post('/urun/ekle', [AdminUrunController::class, 'store'])->name('admin.urun.store');
+    Route::get('/urun/{urun}', [AdminUrunController::class, 'show'])->name('admin.urun.show');
+    Route::get('/urun/{urun}/duzenle', [AdminUrunController::class, 'edit'])->name('admin.urun.edit');
+    Route::put('/urun/{urun}', [AdminUrunController::class, 'update'])->name('admin.urun.update');
+    Route::delete('/urun/{urun}', [AdminUrunController::class, 'destroy'])->name('admin.urun.destroy');
+    Route::post('/urun/toplu-islem', [AdminUrunController::class, 'bulkAction'])->name('admin.urun.bulk');
     // Ürün Bazlı Bayi Fiyat Yönetimi
-    Route::post('/admin/urun/{urun}/bayi-fiyat', function(\App\Models\Urun $urun, \Illuminate\Http\Request $request) {
+    Route::post('/urun/{urun}/bayi-fiyat', function(\App\Models\Urun $urun, \Illuminate\Http\Request $request) {
         $data = $request->validate([
             'bayi_id' => ['required','exists:bayiler,id'],
             'fiyat' => ['required','numeric','min:0'],
@@ -144,104 +181,108 @@ Route::prefix('admin')->group(function () {
         return back()->with('success', 'Bayi fiyatı kaydedildi.');
     })->name('admin.urun.bayi-fiyat.kaydet');
 
-    Route::delete('/admin/urun/{urun}/bayi-fiyat/{id}', function(\App\Models\Urun $urun, $id) {
+    Route::delete('/urun/{urun}/bayi-fiyat/{id}', function(\App\Models\Urun $urun, $id) {
         $kayit = \App\Models\BayiFiyat::where('urun_id',$urun->id)->where('id',$id)->firstOrFail();
         $kayit->delete();
         return back()->with('success', 'Bayi fiyatı silindi.');
     })->name('admin.urun.bayi-fiyat.sil');
     
     // Mağaza Yönetimi (CRUD + Entegrasyon)
-    Route::get('/admin/magaza', [AdminMagazaController::class, 'index'])->name('admin.magaza.index');
-    Route::get('/admin/magaza/yeni', [AdminMagazaController::class, 'create'])->name('admin.magaza.create');
-    Route::post('/admin/magaza/ekle', [AdminMagazaController::class, 'store'])->name('admin.magaza.store');
-    Route::get('/admin/magaza/{magaza}', [AdminMagazaController::class, 'show'])->name('admin.magaza.show');
-    Route::get('/admin/magaza/{magaza}/duzenle', [AdminMagazaController::class, 'edit'])->name('admin.magaza.edit');
-    Route::put('/admin/magaza/{magaza}', [AdminMagazaController::class, 'update'])->name('admin.magaza.update');
-    Route::delete('/admin/magaza/{magaza}', [AdminMagazaController::class, 'destroy'])->name('admin.magaza.destroy');
-    Route::post('/admin/magaza/{magaza}/test-connection', [AdminMagazaController::class, 'testConnection'])->name('admin.magaza.test');
-    Route::post('/admin/magaza/{magaza}/senkronize', [AdminMagazaController::class, 'senkronize'])->name('admin.magaza.sync');
-    Route::post('/admin/magaza/toplu-islem', [AdminMagazaController::class, 'bulkAction'])->name('admin.magaza.bulk');
+    Route::get('/magaza', [AdminMagazaController::class, 'index'])->name('admin.magaza.index');
+    Route::get('/magaza/yeni', [AdminMagazaController::class, 'create'])->name('admin.magaza.create');
+    Route::post('/magaza/ekle', [AdminMagazaController::class, 'store'])->name('admin.magaza.store');
+    Route::get('/magaza/{magaza}', [AdminMagazaController::class, 'show'])->name('admin.magaza.show');
+    Route::get('/magaza/{magaza}/duzenle', [AdminMagazaController::class, 'edit'])->name('admin.magaza.edit');
+    Route::put('/magaza/{magaza}', [AdminMagazaController::class, 'update'])->name('admin.magaza.update');
+    Route::delete('/magaza/{magaza}', [AdminMagazaController::class, 'destroy'])->name('admin.magaza.destroy');
+    Route::post('/magaza/{magaza}/test-connection', [AdminMagazaController::class, 'testConnection'])->name('admin.magaza.test');
+    Route::post('/magaza/{magaza}/senkronize', [AdminMagazaController::class, 'senkronize'])->name('admin.magaza.sync');
+    Route::post('/magaza/toplu-islem', [AdminMagazaController::class, 'bulkAction'])->name('admin.magaza.bulk');
     
     // Site Ayarları
-    Route::get('/admin/site-ayarlari', [SiteAyarController::class, 'index'])->name('admin.site-ayarlari');
-    Route::post('/admin/site-ayarlari', [SiteAyarController::class, 'guncelle'])->name('admin.site-ayarlari.guncelle');
-    Route::post('/admin/site-ayarlari/yeni', [SiteAyarController::class, 'yeniAyar'])->name('admin.site-ayarlari.yeni');
-    Route::delete('/admin/site-ayarlari/{id}', [SiteAyarController::class, 'sil'])->name('admin.site-ayarlari.sil');
+    Route::get('/site-ayarlari', [SiteAyarController::class, 'index'])->name('admin.site-ayarlari');
+    Route::post('/site-ayarlari', [SiteAyarController::class, 'guncelle'])->name('admin.site-ayarlari.guncelle');
+    Route::post('/site-ayarlari/yeni', [SiteAyarController::class, 'yeniAyar'])->name('admin.site-ayarlari.yeni');
+    Route::delete('/site-ayarlari/{id}', [SiteAyarController::class, 'sil'])->name('admin.site-ayarlari.sil');
     
     // E-Ticaret Site Yönetimi
-    Route::get('/admin/eticaret-ayarlari', [SiteAyarController::class, 'index'])->name('admin.site-ayar.index');
-    Route::post('/admin/eticaret-ayarlari', [SiteAyarController::class, 'update'])->name('admin.site-ayar.update');
-    Route::post('/admin/eticaret-ayarlari/toggle', [SiteAyarController::class, 'toggleSite'])->name('admin.site-ayar.toggle');
+    Route::get('/eticaret-ayarlari', [SiteAyarController::class, 'index'])->name('admin.site-ayar.index');
+    Route::post('/eticaret-ayarlari', [SiteAyarController::class, 'update'])->name('admin.site-ayar.update');
+    Route::post('/eticaret-ayarlari/toggle', [SiteAyarController::class, 'toggleSite'])->name('admin.site-ayar.toggle');
 
     // Anasayfa Yönetimi
-    Route::get('/admin/anasayfa', [AnasayfaController::class, 'index'])->name('admin.anasayfa');
-    Route::post('/admin/anasayfa', [AnasayfaController::class, 'guncelle'])->name('admin.anasayfa.guncelle');
+    Route::get('/anasayfa', [AnasayfaController::class, 'index'])->name('admin.anasayfa');
+    Route::post('/anasayfa', [AnasayfaController::class, 'guncelle'])->name('admin.anasayfa.guncelle');
+
+    // Vitrin (Marketing) Yönetimi
+    Route::get('/vitrin', [AdminVitrinController::class, 'index'])->name('admin.vitrin.index');
+    Route::post('/vitrin', [AdminVitrinController::class, 'guncelle'])->name('admin.vitrin.guncelle');
     
     // Sayfa Yönetimi
-    Route::get('/admin/sayfalar', [SayfaYonetimController::class, 'index'])->name('admin.sayfalar');
-    Route::get('/admin/sayfalar/yeni', [SayfaYonetimController::class, 'create'])->name('admin.sayfalar.create');
-    Route::post('/admin/sayfalar', [SayfaYonetimController::class, 'store'])->name('admin.sayfalar.store');
-    Route::get('/admin/sayfalar/{sayfa}/duzenle', [SayfaYonetimController::class, 'edit'])->name('admin.sayfalar.edit');
-    Route::put('/admin/sayfalar/{sayfa}', [SayfaYonetimController::class, 'update'])->name('admin.sayfalar.update');
-    Route::delete('/admin/sayfalar/{sayfa}', [SayfaYonetimController::class, 'destroy'])->name('admin.sayfalar.destroy');
+    Route::get('/sayfalar', [SayfaYonetimController::class, 'index'])->name('admin.sayfalar');
+    Route::get('/sayfalar/yeni', [SayfaYonetimController::class, 'create'])->name('admin.sayfalar.create');
+    Route::post('/sayfalar', [SayfaYonetimController::class, 'store'])->name('admin.sayfalar.store');
+    Route::get('/sayfalar/{sayfa}/duzenle', [SayfaYonetimController::class, 'edit'])->name('admin.sayfalar.edit');
+    Route::put('/sayfalar/{sayfa}', [SayfaYonetimController::class, 'update'])->name('admin.sayfalar.update');
+    Route::delete('/sayfalar/{sayfa}', [SayfaYonetimController::class, 'destroy'])->name('admin.sayfalar.destroy');
 
     // XML içe/dışa aktarma
-    Route::post('/admin/xml/import', [XMLController::class, 'import'])->name('admin.xml.import');
-    Route::get('/admin/xml/export', [XMLController::class, 'export'])->name('admin.xml.export');
+    Route::post('/xml/import', [XMLController::class, 'import'])->name('admin.xml.import');
+    Route::get('/xml/export', [XMLController::class, 'export'])->name('admin.xml.export');
 
     // Kategori Yönetimi
-    Route::get('/admin/kategoriler', [KategoriController::class, 'index'])->name('admin.kategori.index');
-    Route::get('/admin/kategoriler/yeni', [KategoriController::class, 'create'])->name('admin.kategori.create');
-    Route::post('/admin/kategoriler', [KategoriController::class, 'store'])->name('admin.kategori.store');
-    Route::get('/admin/kategoriler/{kategori}/duzenle', [KategoriController::class, 'edit'])->name('admin.kategori.edit');
-    Route::put('/admin/kategoriler/{kategori}', [KategoriController::class, 'update'])->name('admin.kategori.update');
-    Route::delete('/admin/kategoriler/{kategori}', [KategoriController::class, 'destroy'])->name('admin.kategori.destroy');
+    Route::get('/kategoriler', [KategoriController::class, 'index'])->name('admin.kategori.index');
+    Route::get('/kategoriler/yeni', [KategoriController::class, 'create'])->name('admin.kategori.create');
+    Route::post('/kategoriler', [KategoriController::class, 'store'])->name('admin.kategori.store');
+    Route::get('/kategoriler/{kategori}/duzenle', [KategoriController::class, 'edit'])->name('admin.kategori.edit');
+    Route::put('/kategoriler/{kategori}', [KategoriController::class, 'update'])->name('admin.kategori.update');
+    Route::delete('/kategoriler/{kategori}', [KategoriController::class, 'destroy'])->name('admin.kategori.destroy');
 
     // Marka Yönetimi
-    Route::get('/admin/markalar', [MarkaController::class, 'index'])->name('admin.marka.index');
-    Route::get('/admin/markalar/yeni', [MarkaController::class, 'create'])->name('admin.marka.create');
-    Route::post('/admin/markalar', [MarkaController::class, 'store'])->name('admin.marka.store');
-    Route::get('/admin/markalar/{marka}/duzenle', [MarkaController::class, 'edit'])->name('admin.marka.edit');
-    Route::put('/admin/markalar/{marka}', [MarkaController::class, 'update'])->name('admin.marka.update');
-    Route::delete('/admin/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
+    Route::get('/markalar', [MarkaController::class, 'index'])->name('admin.marka.index');
+    Route::get('/markalar/yeni', [MarkaController::class, 'create'])->name('admin.marka.create');
+    Route::post('/markalar', [MarkaController::class, 'store'])->name('admin.marka.store');
+    Route::get('/markalar/{marka}/duzenle', [MarkaController::class, 'edit'])->name('admin.marka.edit');
+    Route::put('/markalar/{marka}', [MarkaController::class, 'update'])->name('admin.marka.update');
+    Route::delete('/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
 
     // Bayi Yönetimi
-    // Marka Yönetimi
-    Route::get('/admin/markalar', [MarkaController::class, 'index'])->name('admin.marka.index');
-    Route::get('/admin/markalar/yeni', [MarkaController::class, 'create'])->name('admin.marka.create');
-    Route::post('/admin/markalar', [MarkaController::class, 'store'])->name('admin.marka.store');
-    Route::get('/admin/markalar/{marka}/duzenle', [MarkaController::class, 'edit'])->name('admin.marka.edit');
-    Route::put('/admin/markalar/{marka}', [MarkaController::class, 'update'])->name('admin.marka.update');
-    Route::delete('/admin/markalar/{marka}', [MarkaController::class, 'destroy'])->name('admin.marka.destroy');
 
     // Özellik Yönetimi
-    Route::get('/admin/ozellikler', [OzellikController::class, 'index'])->name('admin.ozellik.index');
-    Route::get('/admin/ozellikler/yeni', [OzellikController::class, 'create'])->name('admin.ozellik.create');
-    Route::post('/admin/ozellikler', [OzellikController::class, 'store'])->name('admin.ozellik.store');
-    Route::get('/admin/ozellikler/{ozellik}/duzenle', [OzellikController::class, 'edit'])->name('admin.ozellik.edit');
-    Route::put('/admin/ozellikler/{ozellik}', [OzellikController::class, 'update'])->name('admin.ozellik.update');
-    Route::delete('/admin/ozellikler/{ozellik}', [OzellikController::class, 'destroy'])->name('admin.ozellik.destroy');
-    Route::post('/admin/ozellikler/bulk-sil', [OzellikController::class, 'bulkDelete'])->name('admin.ozellik.bulk-delete');
-    Route::get('/admin/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');
-    Route::get('/admin/bayiler/yeni', [BayiController::class, 'create'])->name('admin.bayi.create');
-    Route::post('/admin/bayiler', [BayiController::class, 'store'])->name('admin.bayi.store');
-    Route::get('/admin/bayiler/{bayi}', [BayiController::class, 'show'])->name('admin.bayi.show');
-    Route::get('/admin/bayiler/{bayi}/duzenle', [BayiController::class, 'edit'])->name('admin.bayi.edit');
-    Route::put('/admin/bayiler/{bayi}', [BayiController::class, 'update'])->name('admin.bayi.update');
-    Route::delete('/admin/bayiler/{bayi}', [BayiController::class, 'destroy'])->name('admin.bayi.destroy');
+    Route::get('/ozellikler', [OzellikController::class, 'index'])->name('admin.ozellik.index');
+    Route::get('/ozellikler/yeni', [OzellikController::class, 'create'])->name('admin.ozellik.create');
+    Route::post('/ozellikler', [OzellikController::class, 'store'])->name('admin.ozellik.store');
+    Route::get('/ozellikler/{ozellik}/duzenle', [OzellikController::class, 'edit'])->name('admin.ozellik.edit');
+    Route::put('/ozellikler/{ozellik}', [OzellikController::class, 'update'])->name('admin.ozellik.update');
+    Route::delete('/ozellikler/{ozellik}', [OzellikController::class, 'destroy'])->name('admin.ozellik.destroy');
+    Route::post('/ozellikler/bulk-sil', [OzellikController::class, 'bulkDelete'])->name('admin.ozellik.bulk-delete');
+    Route::get('/bayiler', [BayiController::class, 'index'])->name('admin.bayi.index');
+    Route::get('/bayiler/yeni', [BayiController::class, 'create'])->name('admin.bayi.create');
+    Route::post('/bayiler', [BayiController::class, 'store'])->name('admin.bayi.store');
+    Route::get('/bayiler/{bayi}', [BayiController::class, 'show'])->name('admin.bayi.show');
+    Route::get('/bayiler/{bayi}/duzenle', [BayiController::class, 'edit'])->name('admin.bayi.edit');
+    Route::put('/bayiler/{bayi}', [BayiController::class, 'update'])->name('admin.bayi.update');
+    Route::delete('/bayiler/{bayi}', [BayiController::class, 'destroy'])->name('admin.bayi.destroy');
 });
 
-// B2B Login 
+// B2B Login (guest) - giriş sonrası bayi paneline yönlendirmek için intended set et
 Route::get('/b2b-login', function () {
+    // Girişten sonra nereye gitsin?
+    session(['url.intended' => route('bayi.panel')]);
     return view('auth.b2b-login');
-})->name('b2b.login');
+})->middleware('guest')->name('b2b.login');
 
-// B2B Panel (sadece bayi ve admin)
-Route::middleware(['auth', 'bayi'])->group(function () {
-    Route::get('/b2b', function () {
-        return view('b2b.panel');
-    })->name('b2b.panel');
-});
+// B2B Panel giriş noktası – role göre yönlendir
+Route::get('/b2b', function () {
+    if (!auth()->check()) {
+        return redirect()->route('b2b.login');
+    }
+    $user = auth()->user();
+    if (in_array($user->rol ?? null, ['bayi', 'admin'], true)) {
+        return redirect()->route('bayi.panel');
+    }
+    return redirect()->route('dashboard');
+})->name('b2b.panel');
 
 // Sadece LOCAL ortam için hızlı demo giriş linkleri
 if (app()->environment('local')) {
