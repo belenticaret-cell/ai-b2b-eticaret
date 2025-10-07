@@ -35,4 +35,7 @@ return [
         ],
     ],
 
+    // Optional outbound HTTP proxy for marketplace integrations
+    'http_proxy' => env('HTTP_PROXY'),
+
 ];

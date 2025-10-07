@@ -7,7 +7,7 @@
 <div class="space-y-6">
     <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Hero ve Banner</h2>
-        <form method="POST" action="{{ route('admin.anasayfa.guncelle') }}">
+        <form method="POST" action="{{ route('admin.anasayfa.guncelle') }}" enctype="multipart/form-data">
             @csrf
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -61,6 +61,48 @@
                         @endforeach
                     </select>
                     <small class="text-gray-500">Ctrl/Command ile birden fazla seçebilirsiniz.</small>
+                </div>
+            </div>
+
+            <h2 class="text-lg font-medium text-gray-900 mt-8 mb-4">Header / Footer / Logo</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Header Aktif mi?</label>
+                    <select name="theme_header_aktif" class="w-full px-3 py-2 border rounded">
+                        <option value="1" {{ ($ayarlar['theme_header_aktif'] ?? '1') == '1' ? 'selected' : '' }}>Aktif</option>
+                        <option value="0" {{ ($ayarlar['theme_header_aktif'] ?? '1') == '0' ? 'selected' : '' }}>Pasif</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Footer Aktif mi?</label>
+                    <select name="theme_footer_aktif" class="w-full px-3 py-2 border rounded">
+                        <option value="1" {{ ($ayarlar['theme_footer_aktif'] ?? '1') == '1' ? 'selected' : '' }}>Aktif</option>
+                        <option value="0" {{ ($ayarlar['theme_footer_aktif'] ?? '1') == '0' ? 'selected' : '' }}>Pasif</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Konumu</label>
+                    @php($logoKonum = $ayarlar['theme_logo_position'] ?? 'left')
+                    <select name="theme_logo_position" class="w-full px-3 py-2 border rounded">
+                        <option value="left" {{ $logoKonum==='left' ? 'selected' : '' }}>Sol</option>
+                        <option value="center" {{ $logoKonum==='center' ? 'selected' : '' }}>Orta</option>
+                        <option value="right" {{ $logoKonum==='right' ? 'selected' : '' }}>Sağ</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Yükle (PNG/SVG)</label>
+                    <input type="file" name="theme_logo_dosya" accept="image/png,image/svg+xml" class="w-full px-3 py-2 border rounded" />
+                    @if(!empty($ayarlar['theme_logo_url']))
+                        <div class="mt-2 flex items-center gap-3">
+                            <img src="{{ $ayarlar['theme_logo_url'] }}" alt="Logo" class="h-10 object-contain bg-white p-1 border rounded" />
+                            <span class="text-sm text-gray-500">Mevcut: {{ $ayarlar['theme_logo_url'] }}</span>
+                        </div>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Logo Maksimum Yükseklik (px)</label>
+                    <input type="number" min="20" max="120" step="1" name="theme_logo_max_h" value="{{ $ayarlar['theme_logo_max_h'] ?? 40 }}" class="w-full px-3 py-2 border rounded" />
+                    <small class="text-gray-500">Yükleme sırasında otomatik ölçeklendirme uygulanır.</small>
                 </div>
             </div>
 

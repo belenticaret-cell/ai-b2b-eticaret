@@ -103,20 +103,35 @@ class MagazaController extends Controller
             'komisyon_orani' => ['nullable','numeric','min:0','max:100'],
             'auto_senkron' => ['boolean'],
             'aktif' => ['boolean'],
-            'test_mode' => ['boolean'],
+            // test_mode için geniş kabul: farklı doğruluk ifadelerini kabul ediyoruz
+            'test_mode' => ['sometimes'],
             'aciklama' => ['nullable','string','max:500'],
         ]);
 
         $data['aktif'] = $request->has('aktif');
         $data['auto_senkron'] = $request->has('auto_senkron');
-        $data['test_mode'] = $request->has('test_mode');
+        // test_mode değerini güvenle bool'a çevir (true,false,1,0,on,off,yes,no)
+        $data['test_mode'] = filter_var($request->input('test_mode', false), FILTER_VALIDATE_BOOLEAN);
         $data['son_senkron_tarihi'] = null;
+
+        // Hepsiburada için api_url'den merchant id (magaza_id) çıkarımı
+        if (strtolower($data['platform']) === 'hepsiburada' && empty($data['magaza_id']) && !empty($data['api_url'])) {
+            if (preg_match('#/listings/([^/]+)#i', $data['api_url'], $m)) {
+                $data['magaza_id'] = $m[1];
+            }
+        }
 
         $magaza = Magaza::create($data);
 
         // API bağlantısını test et
         if ($request->has('test_connection')) {
-            $testResult = $this->testConnection($magaza);
+            $testResult = $this->platformService->testConnection($magaza->platform, [
+                'api_key' => $magaza->api_anahtari,
+                'api_secret' => $magaza->api_gizli_anahtari,
+                'api_url' => $magaza->api_url,
+                'magaza_id' => $magaza->magaza_id,
+                'test_mode' => $magaza->test_mode,
+            ]);
             if ($testResult['success']) {
                 $magaza->update(['son_baglanti_testi' => now()]);
                 return redirect()->route('admin.magaza.index')
@@ -138,6 +153,11 @@ class MagazaController extends Controller
             ->where('magaza_urun.magaza_id', $magaza->id)
             ->select('urunler.*')
             ->paginate(20);
+
+        // Uzak katalogdan çekilmiş ürünler (eşleşmiş/ eşleşmemiş)
+        $platformUrunleri = $magaza->platformUrunleri()
+            ->orderByDesc('updated_at')
+            ->paginate(15, ['*'], 'platform_sayfa');
 
         // Senkronizasyon logları (mock data)
         $senkronLoglar = collect([
@@ -176,7 +196,7 @@ class MagazaController extends Controller
             'api_durumu' => $this->getApiDurumu($magaza),
         ];
 
-        return view('admin.magaza.show', compact('magaza', 'urunler', 'senkronLoglar', 'performans'));
+        return view('admin.magaza.show', compact('magaza', 'urunler', 'senkronLoglar', 'performans', 'platformUrunleri'));
     }
 
     public function edit(Magaza $magaza)
@@ -205,13 +225,20 @@ class MagazaController extends Controller
             'komisyon_orani' => ['nullable','numeric','min:0','max:100'],
             'auto_senkron' => ['boolean'],
             'aktif' => ['boolean'],
-            'test_mode' => ['boolean'],
+            'test_mode' => ['sometimes'],
             'aciklama' => ['nullable','string','max:500'],
         ]);
 
         $data['aktif'] = $request->has('aktif');
         $data['auto_senkron'] = $request->has('auto_senkron');
-        $data['test_mode'] = $request->has('test_mode');
+        $data['test_mode'] = filter_var($request->input('test_mode', $magaza->test_mode), FILTER_VALIDATE_BOOLEAN);
+
+        // Hepsiburada için api_url'den merchant id çıkarımı (magaza_id boşsa)
+        if (strtolower($data['platform']) === 'hepsiburada' && empty($data['magaza_id']) && !empty($data['api_url'])) {
+            if (preg_match('#/listings/([^/]+)#i', $data['api_url'], $m)) {
+                $data['magaza_id'] = $m[1];
+            }
+        }
 
         $magaza->update($data);
 
@@ -237,6 +264,7 @@ class MagazaController extends Controller
                 'api_key' => $magaza->api_anahtari,
                 'api_secret' => $magaza->api_gizli_anahtari,
                 'api_url' => $magaza->api_url,
+                'magaza_id' => $magaza->magaza_id,
                 'test_mode' => $magaza->test_mode,
             ]);
 
@@ -259,19 +287,53 @@ class MagazaController extends Controller
     {
         try {
             $islemTuru = $request->get('islem', 'urun'); // urun, stok, fiyat
+            $queue = filter_var($request->get('queue', false), FILTER_VALIDATE_BOOLEAN);
             
+            if ($queue) {
+                // Kuyrukta çalıştır
+                switch ($islemTuru) {
+                    case 'stok':
+                        \App\Jobs\HbSyncStokJob::dispatch($magaza->id);
+                        break;
+                    case 'fiyat':
+                        \App\Jobs\HbSyncFiyatJob::dispatch($magaza->id);
+                        break;
+                    default:
+                        // Ürün senkronu: eşleşmiş her ürün için job
+                        $ids = $magaza->urunler()->pluck('urun_id');
+                        foreach ($ids as $uid) {
+                            \App\Jobs\HbSyncUrunJob::dispatch($magaza->id, $uid)->onQueue('hb');
+                        }
+                        break;
+                }
+                $magaza->update(['son_senkron_tarihi' => now()]);
+                return $request->expectsJson()
+                    ? response()->json(['success' => true, 'message' => 'İşlem kuyruğa alındı.'])
+                    : back()->with('success', 'İşlem kuyruğa alındı.');
+            }
+
             $result = $this->platformService->senkronize($magaza, $islemTuru);
             
             // Son senkron tarihini güncelle
             $magaza->update(['son_senkron_tarihi' => now()]);
 
-            if ($result['success']) {
-                return back()->with('success', "✅ {$islemTuru} senkronizasyonu başarılı: " . $result['message']);
-            } else {
-                return back()->with('error', "❌ Senkronizasyon hatası: " . $result['message']);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => $result['success'],
+                    'message' => $result['message'],
+                    'data' => $result['data'] ?? null,
+                ]);
             }
 
+            return back()->with($result['success'] ? 'success' : 'error', ($result['success'] ? '✅ ' : '❌ ') . $result['message']);
+
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Senkronizasyon sırasında hata: ' . $e->getMessage(),
+                ], 500);
+            }
             return back()->with('error', '❌ Senkronizasyon sırasında hata: ' . $e->getMessage());
         }
     }
@@ -324,7 +386,12 @@ class MagazaController extends Controller
                 
                 foreach ($magazaIds as $id) {
                     $magaza = Magaza::find($id);
-                    $result = $this->testConnection($magaza);
+                    $result = $this->platformService->testConnection($magaza->platform, [
+                        'api_key' => $magaza->api_anahtari,
+                        'api_secret' => $magaza->api_gizli_anahtari,
+                        'api_url' => $magaza->api_url,
+                        'test_mode' => $magaza->test_mode,
+                    ]);
                     if ($result['success']) {
                         $başarılı++;
                         $magaza->update(['son_baglanti_testi' => now()]);
@@ -337,6 +404,170 @@ class MagazaController extends Controller
         }
 
         return back()->with('error', '❌ İşlem gerçekleştirilemedi!');
+    }
+
+    // Uzak katalog çekme
+    public function uzakKatalogCek(Magaza $magaza)
+    {
+        try {
+            \Log::info('Katalog çekme başlatıldı', [
+                'magaza_id' => $magaza->id,
+                'platform' => $magaza->platform,
+                'user_id' => auth()->id()
+            ]);
+            
+            // Platform-specific ön kontroller
+            if (strtolower($magaza->platform) === 'hepsiburada') {
+                if (empty($magaza->magaza_id)) {
+                    return back()->with('error', '❌ Hepsiburada katalog çekilemedi: Mağaza kimliği (magaza_id) tanımlı değil. Lütfen mağaza düzenle sayfasından doldurun.');
+                }
+                if (empty($magaza->api_anahtari) || empty($magaza->api_gizli_anahtari)) {
+                    return back()->with('error', '🔐 Hepsiburada katalog çekilemedi: API anahtarı/gizli anahtar tanımlı değil.');
+                }
+            } elseif (strtolower($magaza->platform) === 'trendyol') {
+                if (empty($magaza->magaza_id)) {
+                    return back()->with('error', '❌ Trendyol katalog çekilemedi: Mağaza kimliği (supplierId) tanımlı değil.');
+                }
+                if (empty($magaza->api_anahtari) || empty($magaza->api_gizli_anahtari)) {
+                    return back()->with('error', '🔐 Trendyol katalog çekilemedi: API Key/Secret tanımlı değil.');
+                }
+            }
+            
+            $startTime = microtime(true);
+            $res = $this->platformService->uzakKatalogCekVeKaydet($magaza);
+            $duration = round((microtime(true) - $startTime) * 1000, 2);
+            
+            \Log::info('Katalog çekme tamamlandı', [
+                'magaza_id' => $magaza->id,
+                'success' => $res['success'],
+                'duration_ms' => $duration,
+                'result' => $res
+            ]);
+            
+            $msg = $res['message'];
+            
+            // Correlation ID'yi yakala ve göster
+            $correlationId = $res['correlation_id'] ?? null;
+            
+            // Detaylı hata bilgilerini ekle
+            if (!$res['success']) {
+                // Error type'ı varsa göster
+                if (isset($res['error_type'])) {
+                    $msg .= "\n\n⚠️ Hata Tipi: " . $res['error_type'];
+                }
+                
+                // Error code'u varsa göster
+                if (isset($res['error_code'])) {
+                    $msg .= "\n🚨 HTTP Kodu: " . $res['error_code'];
+                }
+                
+                // Details varsa göster
+                if (isset($res['data']['details'])) {
+                    $details = $res['data']['details'];
+                    if (!empty($details)) {
+                        $firstDetail = is_array($details) ? $details[0] : $details;
+                        if (is_string($firstDetail)) {
+                            $msg .= "\n\n📋 Detay: " . $firstDetail;
+                        }
+                    }
+                }
+                
+                // Retry bilgileri varsa göster
+                if (isset($res['retry_info'])) {
+                    $retryInfo = $res['retry_info'];
+                    if (isset($retryInfo['retry_after_seconds'])) {
+                        $msg .= "\n\n⏱️ Tekrar deneme süresi: " . $retryInfo['retry_after_seconds'] . " saniye";
+                    }
+                    if (isset($retryInfo['max_retries'])) {
+                        $msg .= "\n🔄 Maksimum deneme: " . $retryInfo['max_retries'];
+                    }
+                }
+                
+                // Correlation ID varsa göster
+                if ($correlationId) {
+                    $msg .= "\n\n🔗 Correlation ID: " . $correlationId;
+                    $msg .= "\n💡 Bu ID'yi destek taleplerinizde paylaşın.";
+                }
+                
+                // Platform-specific çözüm önerileri
+                if (strtolower($magaza->platform) === 'trendyol') {
+                    if (isset($res['error_code']) && $res['error_code'] == 403) {
+                        $msg .= "\n\n�️ Çözüm Önerileri:";
+                        $msg .= "\n• IP adresinizi Trendyol'a whitelist ettirin";
+                        $msg .= "\n• Güvenilir proxy/VPN kullanın";
+                        $msg .= "\n• API credentials'ları kontrol edin";
+                    } elseif (isset($res['error_code']) && $res['error_code'] == 429) {
+                        $msg .= "\n\n🛠️ Rate Limit Çözümü:";
+                        $msg .= "\n• Biraz bekleyip tekrar deneyin";
+                        $msg .= "\n• API kullanım limitinizi kontrol edin";
+                    }
+                }
+            } else {
+                // Başarılı durumda da correlation ID göster
+                if ($correlationId) {
+                    $msg .= "\n\n🔗 İşlem ID: " . $correlationId;
+                }
+            }
+            
+            return back()->with($res['success'] ? 'success' : 'error', $msg);
+            
+        } catch (\Exception $e) {
+            \Log::error('Katalog çekme exception', [
+                'magaza_id' => $magaza->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', '💥 Katalog çekme hatası: '.$e->getMessage() . "\n\nLütfen log dosyalarını kontrol edin.");
+        }
+    }
+
+    // Platform ürünü yerel ürünle eşleştir
+    public function urunEsle(Request $request, Magaza $magaza)
+    {
+        $data = $request->validate([
+            'platform_urun_id' => ['required','integer','exists:magaza_platform_urunleri,id'],
+            'urun_id' => ['required','integer','exists:urunler,id'],
+        ]);
+
+        $kayit = \App\Models\MagazaPlatformUrunu::where('magaza_id', $magaza->id)
+            ->where('id', $data['platform_urun_id'])
+            ->firstOrFail();
+        $kayit->urun_id = $data['urun_id'];
+        $kayit->save();
+
+        // Pivotu bağla (detach etmeden)
+        $magaza->urunler()->syncWithoutDetaching([
+            $data['urun_id'] => [
+                'platform_urun_id' => $kayit->platform_urun_id,
+                'platform_sku' => $kayit->platform_sku,
+                'senkron_durum' => 'eslendi'
+            ]
+        ]);
+
+        return back()->with('success', 'Platform ürünü yerel ürünle eşleştirildi.');
+    }
+
+    // Tek bir eşleşmiş ürünü platforma gönder
+    public function urunGonder(Request $request, Magaza $magaza)
+    {
+        $data = $request->validate([
+            'platform_urun_id' => ['required','integer','exists:magaza_platform_urunleri,id'],
+        ]);
+
+        $kayit = \App\Models\MagazaPlatformUrunu::where('magaza_id', $magaza->id)
+            ->where('id', $data['platform_urun_id'])
+            ->firstOrFail();
+
+        if (!$kayit->urun_id) {
+            return back()->with('error', 'Önce yerel ürünle eşleştirmeniz gerekiyor.');
+        }
+
+        $res = $this->platformService->urunleriSenkronize($magaza, [$kayit->urun_id]);
+
+        return back()->with($res['error_count'] === 0 ? 'success' : 'error',
+            ($res['error_count'] === 0 ? '✅ ' : '❌ ') . 'Ürün gönderimi tamamlandı: '
+            . ($res['success_count'] ?? 0) . ' başarılı, ' . ($res['error_count'] ?? 0) . ' hatalı');
     }
 
     // Yardımcı metodlar

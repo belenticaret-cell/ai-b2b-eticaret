@@ -290,3 +290,12 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## 📘 Entegrasyon Dokümanları
+
+- Entegrasyon Playbook: `docs/entegrasyon-playbook.md`
+- Oturum Notları: `docs/SESSION_NOTES/2025-10-07-trendyol-hepsiburada-oturum-notlari.md`
+- GPT5 Playbook (03–07 Ekim 2025): `docs/gpt5.md`
+- Oturum Özeti Şablonu: `docs/SESSION_NOTES/_template-oturum-ozeti.md`
+- AI ile Paylaşım Kontrol Listesi: `docs/SHARE_WITH_AI_CHECKLIST.md`
+

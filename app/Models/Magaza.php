@@ -66,6 +66,11 @@ class Magaza extends Model
         return $this->hasMany(SenkronLog::class);
     }
 
+    public function platformUrunleri()
+    {
+        return $this->hasMany(\App\Models\MagazaPlatformUrunu::class);
+    }
+
     // Scope'lar
     public function scopeAktif($query)
     {
@@ -80,21 +85,22 @@ class Magaza extends Model
     // Helper metodları
     public function getPlatformConfig()
     {
-        return config("eticaret.platformlar.{$this->platform}", []);
+        $key = strtolower($this->platform);
+        return config("eticaret.platformlar.{$key}", []);
     }
 
     public function getApiCredentials()
     {
         return [
             'api_key' => $this->api_anahtari,
-            'api_secret' => $this->api_gizli_anahtar,
+            'api_secret' => $this->api_gizli_anahtari ?? $this->api_gizli_anahtar,
             'base_url' => $this->api_base_url ?? $this->getPlatformConfig()['base_url'] ?? null,
         ];
     }
 
     public function isApiConfigured()
     {
-        return !empty($this->api_anahtari) && !empty($this->api_gizli_anahtar);
+        return !empty($this->api_anahtari) && !empty($this->api_gizli_anahtari ?? $this->api_gizli_anahtar);
     }
 
     public function getLastSyncStatus()

@@ -4,350 +4,380 @@
 @section('meta_description', 'AI B2B E-Ticaret platformunda kaliteli ürünleri keşfedin. B2B ve B2C satış seçenekleri ile en uygun fiyatları bulun.')
 
 @section('content')
-<!-- Hero Section -->
-<section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-    <div class="container mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ $siteAyarlar['anasayfa_hero_baslik'] ?? ($siteAyarlar['site_adi'] ?? 'AI B2B E-Ticaret') }}</h1>
-        <p class="text-xl mb-8">{{ $siteAyarlar['anasayfa_hero_altbaslik'] ?? ($siteAyarlar['site_aciklama'] ?? 'Modern teknoloji ile ticaretin buluştuğu platform') }}</p>
-        <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <h3 class="font-semibold">✨ AI Destekli</h3>
-                <p class="text-sm">Akıllı ürün önerileri</p>
+<!-- Hero Section with Particles Effect -->
+<section class="relative bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-white py-20 overflow-hidden">
+    <!-- Animated Background -->
+    <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-20 left-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div class="absolute top-40 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div class="absolute -bottom-8 left-40 w-72 h-72 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+    </div>
+    
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <!-- Hero Content -->
+            <div class="text-center lg:text-left">
+                <div class="inline-flex items-center bg-white bg-opacity-10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+                    <span class="text-green-400 text-sm font-semibold">🚀 YENİ</span>
+                    <span class="ml-2 text-sm">AI Destekli E-Ticaret Platformu</span>
+                </div>
+                
+                <h1 class="text-5xl lg:text-6xl font-extrabold mb-6 leading-tight">
+                    <span class="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                        {{ $siteAyarlar['anasayfa_hero_baslik'] ?? 'Geleceğin E-Ticaret' }}
+                    </span>
+                    <br>
+                    <span class="text-yellow-400">Platformu</span>
+                </h1>
+                
+                <p class="text-xl text-blue-100 mb-8 max-w-lg">
+                    {{ $siteAyarlar['anasayfa_hero_altbaslik'] ?? 'AI teknolojisi ile desteklenen, çoklu platform entegrasyonlu B2B/B2C e-ticaret çözümü' }}
+                </p>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                    <a href="{{ route('vitrin.magaza') }}" 
+                       class="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center">
+                        🛍️ Mağazaya Git
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                    </a>
+                    
+                    <a href="#features" 
+                       class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-blue-900 transition-all duration-300 flex items-center justify-center">
+                        📖 Daha Fazla Bilgi
+                    </a>
+                </div>
+                
+                <!-- Social Proof -->
+                <div class="flex items-center space-x-6 text-blue-200">
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-white">{{ $urunSayisi ?? '1000+' }}</span>
+                        <span class="ml-2">Ürün</span>
+                    </div>
+                    <div class="w-1 h-6 bg-blue-300"></div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-white">{{ $platformStats['aktif_magaza'] ?? '5+' }}</span>
+                        <span class="ml-2">Platform</span>
+                    </div>
+                    <div class="w-1 h-6 bg-blue-300"></div>
+                    <div class="flex items-center">
+                        <span class="text-2xl font-bold text-white">%99.9</span>
+                        <span class="ml-2">Uptime</span>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <h3 class="font-semibold">🔄 Çoklu Platform</h3>
-                <p class="text-sm">Trendyol, Hepsiburada, N11</p>
-            </div>
-            <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                <h3 class="font-semibold">💼 B2B Çözümler</h3>
-                <p class="text-sm">Bayiler için özel fiyatlar</p>
+            
+            <!-- Hero Visual -->
+            <div class="relative">
+                <div class="relative z-10">
+                    <!-- Dashboard Preview -->
+                    <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white border-opacity-20">
+                        <div class="flex items-center mb-4">
+                            <div class="flex space-x-2">
+                                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                            </div>
+                            <div class="ml-4 text-sm text-blue-200">AI B2B Dashboard</div>
+                        </div>
+                        
+                        <!-- Mini Dashboard -->
+                        <div class="space-y-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-xl">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <div class="text-blue-100 text-sm">Toplam Satış</div>
+                                        <div class="text-2xl font-bold">₺847,392</div>
+                                    </div>
+                                    <div class="text-3xl">📈</div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-gradient-to-r from-green-400 to-green-600 p-3 rounded-lg">
+                                    <div class="text-sm text-green-100">Siparişler</div>
+                                    <div class="text-lg font-bold">1,247</div>
+                                </div>
+                                <div class="bg-gradient-to-r from-orange-400 to-red-500 p-3 rounded-lg">
+                                    <div class="text-sm text-orange-100">Ürünler</div>
+                                    <div class="text-lg font-bold">{{ $urunSayisi ?? '842' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Floating Elements -->
+                <div class="absolute -top-4 -right-4 w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center text-2xl animate-bounce">
+                    🚀
+                </div>
+                <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-pink-400 rounded-full flex items-center justify-center text-xl animate-pulse">
+                    ⭐
+                </div>
             </div>
         </div>
-        @if(!empty($siteAyarlar['anasayfa_hero_buton_yazi']))
-            <div class="mt-8">
-                <a href="{{ $siteAyarlar['anasayfa_hero_buton_link'] ?? route('vitrin.urunler') }}" class="inline-block bg-white text-blue-700 font-semibold px-6 py-3 rounded shadow hover:bg-gray-100">
-                    {{ $siteAyarlar['anasayfa_hero_buton_yazi'] }}
-                </a>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+    </div>
+</section>
+
+<!-- Platform Integration Bar -->
+<section class="bg-gray-50 py-8 border-b">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-6">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">🔗 Entegre Platformlar</h3>
+            <p class="text-gray-600">Tüm büyük e-ticaret platformları ile senkronize</p>
+        </div>
+        
+        <div class="flex flex-wrap justify-center items-center gap-8 opacity-70 hover:opacity-100 transition-opacity">
+            <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-sm">
+                <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">T</div>
+                <span class="font-semibold text-gray-700">Trendyol</span>
             </div>
-        @endif
+            
+            <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-sm">
+                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">H</div>
+                <span class="font-semibold text-gray-700">Hepsiburada</span>
+            </div>
+            
+            <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-sm">
+                <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">N</div>
+                <span class="font-semibold text-gray-700">N11</span>
+            </div>
+            
+            <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-sm">
+                <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-sm">A</div>
+                <span class="font-semibold text-gray-700">Amazon</span>
+            </div>
+            
+            <div class="flex items-center space-x-3 bg-white p-4 rounded-lg shadow-sm">
+                <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">+</div>
+                <span class="font-semibold text-gray-700">Daha Fazla</span>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="py-16 bg-white">
+<section id="features" class="py-20 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Neden Bizi Seçmelisiniz?</h2>
-        <div class="grid md:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">Geniş Ürün Yelpazesi</h3>
-                <p class="text-gray-600">Binlerce ürün çeşidi ile her ihtiyacınıza uygun çözümler</p>
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+                ✨ ÖZELLİKLER
             </div>
-            <div class="text-center">
-                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">Güvenli Ödeme</h3>
-                <p class="text-gray-600">SSL sertifikası ile korunan güvenli ödeme altyapısı</p>
-            </div>
-            <div class="text-center">
-                <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-2">Hızlı Teslimat</h3>
-                <p class="text-gray-600">1-3 iş günü içinde hızlı ve güvenli teslimat</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-@if(isset($oneCikanKategoriler) && $oneCikanKategoriler->count())
-<section class="py-10 bg-white">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Öne Çıkan Kategoriler</h2>
-            <a href="{{ route('vitrin.urunler') }}" class="text-blue-600 hover:underline">Tüm Ürünler</a>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            @foreach($oneCikanKategoriler as $kat)
-                <a href="{{ route('vitrin.kategori.slug', $kat->slug) }}" class="block bg-gray-50 hover:bg-gray-100 rounded p-4 text-center border">
-                    <div class="font-semibold">{{ $kat->ad }}</div>
-                </a>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-@if(isset($oneCikanUrunler) && $oneCikanUrunler->count())
-<section class="py-10 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">Öne Çıkan Ürünler</h2>
-            <a href="{{ route('vitrin.urunler') }}" class="text-blue-600 hover:underline">Tümünü Gör</a>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach($oneCikanUrunler as $urun)
-                <div class="bg-white rounded-lg shadow-md">
-                    <img src="{{ $urun->gorsel ? (Str::startsWith($urun->gorsel, ['http://','https://']) ? $urun->gorsel : asset('storage/'.$urun->gorsel)) : 'https://placehold.co/600x400?text=Urun' }}" class="w-full h-40 object-cover rounded-t" />
-                    <div class="p-4">
-                        <div class="font-semibold line-clamp-1 mb-1">{{ $urun->ad }}</div>
-                        <div class="text-blue-600 font-bold mb-3">{{ number_format($urun->fiyat, 2) }} ₺</div>
-                        <div class="flex gap-2">
-                            <a class="flex-1 text-center bg-gray-100 hover:bg-gray-200 rounded py-2 text-sm" href="{{ route('vitrin.urun-detay', $urun->id) }}">Detay</a>
-                            <form action="{{ route('sepet.ekle') }}" method="POST" class="flex-1">
-                                @csrf
-                                <input type="hidden" name="urun_id" value="{{ $urun->id }}">
-                                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded py-2 text-sm">Sepete Ekle</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- Products Section -->
-<section class="py-16 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-3xl font-bold">
-                @if(request('q'))
-                    "{{ request('q') }}" için Arama Sonuçları
-                @elseif(request('kategori_id'))
-                    @php($kategori = $kategoriler->find(request('kategori_id')))
-                    {{ $kategori ? $kategori->ad : 'Kategori' }} Ürünleri
-                @else
-                    Öne Çıkan Ürünler
-                @endif
+            <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+                Neden <span class="text-blue-600">AI B2B</span> Seçmelisiniz?
             </h2>
-            @if($urunler->count() > 0)
-                <span class="text-gray-600">{{ $urunler->total() }} ürün bulundu</span>
-            @endif
-        </div>
-
-        @if(!empty($breadcrumbs))
-            <nav class="text-sm text-gray-600 mb-6">
-                <ol class="list-reset flex">
-                    <li><a href="{{ route('vitrin.index') }}" class="hover:underline">Anasayfa</a></li>
-                    @foreach($breadcrumbs as $i => $bc)
-                        <li class="mx-2">/</li>
-                        <li>
-                            @if($i < count($breadcrumbs)-1)
-                                <a href="{{ route('vitrin.kategori.slug', $bc->slug) }}" class="hover:underline">{{ $bc->ad }}</a>
-                            @else
-                                <span class="font-semibold">{{ $bc->ad }}</span>
-                            @endif
-                        </li>
-                    @endforeach
-                </ol>
-            </nav>
-        @endif
-        
-        <!-- Filters + Alt Kategoriler -->
-        @if(isset($altKategoriler) && $altKategoriler->count())
-            <div class="mb-6 flex flex-wrap gap-2">
-                @foreach($altKategoriler as $alt)
-                    <a href="{{ route('vitrin.kategori.slug', $alt->slug) }}" class="px-3 py-1 bg-white rounded border hover:bg-gray-50 text-sm">{{ $alt->ad }}</a>
-                @endforeach
-            </div>
-        @endif
-
-        @if(isset($kategoriAgaci) && $kategoriAgaci->count())
-            <details class="mb-4 bg-white rounded border p-4" open>
-                <summary class="cursor-pointer font-semibold">Kategoriler</summary>
-                <div class="mt-3 grid md:grid-cols-3 gap-4 text-sm">
-                    @foreach($kategoriAgaci as $ana)
-                        <div>
-                            <div class="mb-1 font-semibold"><a href="{{ route('vitrin.kategori.slug', $ana->slug) }}" class="hover:underline">{{ $ana->ad }}</a></div>
-                            @if($ana->children && $ana->children->count())
-                                <ul class="ml-3 list-disc text-gray-700">
-                                    @foreach($ana->children as $alt)
-                                        <li><a href="{{ route('vitrin.kategori.slug', $alt->slug) }}" class="hover:underline">{{ $alt->ad }}</a></li>
-                                    @endforeach
-                                </ul>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-            </details>
-        @endif
-        <div class="bg-white rounded-lg shadow p-6 mb-8">
-            <form method="GET" action="{{ route('vitrin.index') }}" class="space-y-4 md:space-y-0 md:flex md:items-end md:space-x-4">
-                <!-- Search -->
-                <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ürün Arama</label>
-                    <input type="text" name="q" value="{{ request('q') }}" 
-                           placeholder="Ürün adı, açıklama veya SKU..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <!-- Category -->
-                <div class="md:w-48">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                    <select name="kategori_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Tümü</option>
-                        @foreach($kategoriler as $kategori)
-                            <option value="{{ $kategori->id }}" {{ request('kategori_id') == $kategori->id ? 'selected' : '' }}>
-                                {{ $kategori->ad }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <!-- Brand -->
-                <div class="md:w-48">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Marka</label>
-                    <select name="marka_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Tümü</option>
-                        @foreach($markalar as $marka)
-                            <option value="{{ $marka->id }}" {{ request('marka_id') == $marka->id ? 'selected' : '' }}>
-                                {{ $marka->ad }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <!-- Price Range -->
-                <div class="flex space-x-2">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Fiyat</label>
-                        <input type="number" name="min_fiyat" value="{{ request('min_fiyat') }}" 
-                               placeholder="0"
-                               class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Fiyat</label>
-                        <input type="number" name="max_fiyat" value="{{ request('max_fiyat') }}" 
-                               placeholder="999999"
-                               class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-                
-                <!-- Sort -->
-                <div class="md:w-40">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Sırala</label>
-                    <select name="sirala" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="yeni" {{ request('sirala') == 'yeni' ? 'selected' : '' }}>Yeniler</option>
-                        <option value="fiyat_artan" {{ request('sirala') == 'fiyat_artan' ? 'selected' : '' }}>Fiyat (Artan)</option>
-                        <option value="fiyat_azalan" {{ request('sirala') == 'fiyat_azalan' ? 'selected' : '' }}>Fiyat (Azalan)</option>
-                        <option value="isim" {{ request('sirala') == 'isim' ? 'selected' : '' }}>İsim</option>
-                    </select>
-                </div>
-                
-                <!-- Submit -->
-                <div class="flex space-x-2">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">
-                        Filtrele
-                    </button>
-                    <a href="{{ route('vitrin.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition">
-                        Temizle
-                    </a>
-                </div>
-            </form>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Gelişmiş teknoloji, güçlü entegrasyonlar ve kullanıcı dostu arayüz ile e-ticaret deneyiminizi yeniden tanımlayın
+            </p>
         </div>
         
-        @if($urunler->count() === 0)
-            <div class="bg-white rounded-lg p-8 text-center">
-                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-                </svg>
-                <h3 class="text-xl font-semibold text-gray-700 mb-2">Henüz Ürün Bulunmuyor</h3>
-                <p class="text-gray-500">Yakında harika ürünlerle karşınızda olacağız!</p>
-            </div>
-        @else
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                @foreach($urunler as $urun)
-                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
-                        <div class="relative">
-                            <img src="{{ $urun->gorsel ? (Str::startsWith($urun->gorsel, ['http://','https://']) ? $urun->gorsel : asset('storage/'.$urun->gorsel)) : 'https://placehold.co/600x400?text=Urun' }}" 
-                                 class="w-full h-48 object-cover rounded-t-lg" 
-                                 alt="{{ $urun->ad }}">
-                            @if($urun->stok && $urun->stok < 10)
-                                <span class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">Son {{ $urun->stok }} Adet</span>
-                            @endif
-                        </div>
-                        
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold mb-2 line-clamp-2">{{ $urun->ad }}</h3>
-                            
-                            @if($urun->aciklama)
-                                <p class="text-gray-600 text-sm mb-3 line-clamp-2">{{ Str::limit($urun->aciklama, 80) }}</p>
-                            @endif
-                            
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-2xl font-bold text-blue-600">{{ number_format($urun->fiyat, 2) }} ₺</span>
-                                @if($urun->stok)
-                                    <span class="text-sm text-gray-500">Stok: {{ $urun->stok }}</span>
-                                @endif
-                            </div>
-                            
-                            @php($ms = $urunMagazalari[$urun->id] ?? [])
-                            @if(!empty($ms))
-                                <div class="mb-3 flex flex-wrap gap-1">
-                                    @foreach($ms as $m)
-                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                                            {{ $m['ad'] }}
-                                            @if(!empty($m['platform']))
-                                                <span class="text-gray-500">({{ $m['platform'] }})</span>
-                                            @endif
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                            
-                            <div class="flex space-x-2">
-                                <a href="{{ route('vitrin.urun-detay', $urun->id) }}" 
-                                   class="flex-1 bg-gray-100 text-gray-700 text-center py-2 px-4 rounded-md hover:bg-gray-200 transition text-sm font-medium">
-                                    Detay
-                                </a>
-                                <form action="{{ route('sepet.ekle') }}" method="POST" class="flex-1">
-                                    @csrf
-                                    <input type="hidden" name="urun_id" value="{{ $urun->id }}">
-                                    <button type="submit" 
-                                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition text-sm font-medium">
-                                        Sepete Ekle
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- AI Features -->
+            <div class="group bg-gradient-to-br from-purple-50 to-blue-50 p-8 rounded-2xl border border-purple-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span class="text-2xl">🤖</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">AI Destekli Sistem</h3>
+                <p class="text-gray-600 mb-6">Makine öğrenmesi ile akıllı ürün önerileri, otomatik fiyatlandırma ve stok optimizasyonu</p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Akıllı ürün önerileri</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Otomatik fiyat optimizasyonu</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Stok tahmin algoritması</li>
+                </ul>
             </div>
             
-            <!-- Pagination -->
-            @if($urunler->hasPages())
-                <div class="mt-8 flex justify-center">
-                    {{ $urunler->links() }}
+            <!-- Multi-Platform -->
+            <div class="group bg-gradient-to-br from-green-50 to-teal-50 p-8 rounded-2xl border border-green-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span class="text-2xl">🔗</span>
                 </div>
-            @endif
-        @endif
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Çoklu Platform</h3>
+                <p class="text-gray-600 mb-6">Tüm büyük e-ticaret platformları ile otomatik senkronizasyon ve merkezi yönetim</p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> 5+ Platform entegrasyonu</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Gerçek zamanlı senkronizasyon</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Merkezi stok yönetimi</li>
+                </ul>
+            </div>
+            
+            <!-- B2B Solutions -->
+            <div class="group bg-gradient-to-br from-orange-50 to-red-50 p-8 rounded-2xl border border-orange-100 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <span class="text-2xl">💼</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">B2B Çözümler</h3>
+                <p class="text-gray-600 mb-6">Bayiler için özel fiyatlandırma, toplu sipariş ve gelişmiş raporlama sistemleri</p>
+                <ul class="space-y-2 text-sm text-gray-700">
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Bayi özel fiyatları</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Toplu sipariş sistemi</li>
+                    <li class="flex items-center"><span class="text-green-500 mr-2">✓</span> Gelişmiş raporlama</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-16 bg-blue-600 text-white">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-4">B2B Bayiimiz Olmak İster misiniz?</h2>
-        <p class="text-xl mb-8">Özel fiyatlar ve avantajlı koşullarla ticaretinizi büyütün</p>
-        <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-4">
-            <a href="/b2b-login" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-                B2B Giriş Yap
-            </a>
-            <a href="{{ route('sayfa.iletisim') }}" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
-                Bize Ulaşın
+<!-- Stats Section -->
+<section class="py-16 bg-gradient-to-r from-blue-600 to-purple-700">
+    <div class="container mx-auto px-4">
+        <div class="grid md:grid-cols-4 gap-8 text-center text-white">
+            <div class="group">
+                <div class="text-4xl lg:text-5xl font-bold mb-2 group-hover:scale-110 transition-transform">{{ $urunSayisi ?? '1000+' }}</div>
+                <div class="text-blue-200 text-lg">Aktif Ürün</div>
+            </div>
+            <div class="group">
+                <div class="text-4xl lg:text-5xl font-bold mb-2 group-hover:scale-110 transition-transform">{{ $bayiSayisi ?? '50+' }}</div>
+                <div class="text-blue-200 text-lg">Mutlu Bayi</div>
+            </div>
+            <div class="group">
+                <div class="text-4xl lg:text-5xl font-bold mb-2 group-hover:scale-110 transition-transform">{{ $platformStats['aktif_magaza'] ?? '5+' }}</div>
+                <div class="text-blue-200 text-lg">Platform Entegrasyonu</div>
+            </div>
+            <div class="group">
+                <div class="text-4xl lg:text-5xl font-bold mb-2 group-hover:scale-110 transition-transform">%99.9</div>
+                <div class="text-blue-200 text-lg">Sistem Uptime</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+@if(isset($onerilen_urunler) && $onerilen_urunler->count() > 0)
+<section class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">⭐ Öne Çıkan Ürünler</h2>
+            <p class="text-xl text-gray-600">En popüler ve kaliteli ürünlerimizi keşfedin</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @foreach($onerilen_urunler->take(8) as $urun)
+            <div class="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+                @if($urun->gorsel)
+                    <div class="aspect-square overflow-hidden">
+                        <img src="{{ $urun->gorsel }}" alt="{{ $urun->ad }}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    </div>
+                @else
+                    <div class="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <span class="text-4xl text-gray-400">📦</span>
+                    </div>
+                @endif
+                
+                <div class="p-6">
+                    <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">{{ $urun->ad }}</h3>
+                    <div class="text-2xl font-bold text-blue-600 mb-4">
+                        ₺{{ number_format($urun->fiyat, 2, ',', '.') }}
+                    </div>
+                    <button class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-all">
+                        🛒 Sepete Ekle
+                    </button>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        
+        <div class="text-center mt-12">
+            <a href="{{ route('vitrin.magaza') }}" 
+               class="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all">
+                Mağazaya Git & Alışverişe Başla
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
             </a>
         </div>
     </div>
 </section>
+@endif
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-to-r from-gray-900 to-blue-900 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl lg:text-5xl font-bold mb-6">
+                Hemen Başlayın! 🚀
+            </h2>
+            <p class="text-xl text-blue-200 mb-8">
+                AI destekli e-ticaret platformumuz ile işinizi büyütün. Ücretsiz deneme sürümü ile hemen başlayabilirsiniz.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ route('register') }}" 
+                   class="bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all">
+                    ✨ Ücretsiz Başla
+                </a>
+                
+                <a href="#" 
+                   class="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-blue-900 transition-all">
+                    📞 Demo Talep Et
+                </a>
+            </div>
+            
+            <div class="mt-8 text-blue-200">
+                <span class="text-sm">💳 Kredi kartı gerekmez • 🔒 SSL güvenli • 📞 7/24 destek</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-in-up');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe all feature cards
+    document.querySelectorAll('.group').forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
 @endsection

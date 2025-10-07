@@ -27,7 +27,7 @@ class SayfaYonetimController extends Controller
             'icerik' => 'required|string',
             'meta_baslik' => 'nullable|string|max:255',
             'meta_aciklama' => 'nullable|string|max:500',
-            'durum' => 'boolean',
+            'durum' => 'nullable',
             'sira' => 'nullable|integer|min:0',
             'tip' => 'required|in:sayfa,blog,duyuru',
         ]);
@@ -61,7 +61,7 @@ class SayfaYonetimController extends Controller
             'icerik' => 'required|string',
             'meta_baslik' => 'nullable|string|max:255',
             'meta_aciklama' => 'nullable|string|max:500',
-            'durum' => 'boolean',
+            'durum' => 'nullable',
             'sira' => 'nullable|integer|min:0',
             'tip' => 'required|in:sayfa,blog,duyuru',
         ]);

@@ -222,13 +222,103 @@ class VitrinController extends Controller
         return $this->index($request);
     }
     
+    // E-Ticaret Satış Sayfası - Sadece aktif ürünler
+    public function magaza(Request $request)
+    {
+        $query = Urun::query()->with(['kategori', 'marka'])->where('durum', true);
+        $seciliKategori = null;
+        $altKategoriler = collect();
+        $breadcrumbs = [];
+        
+        // Kategori filtresi
+        if ($request->kategori_id) {
+            $seciliKategori = Kategori::with('parent', 'children')->find($request->kategori_id);
+            if ($seciliKategori) {
+                $altTum = $seciliKategori->getAllChildren()->pluck('id')->all();
+                $ids = array_unique(array_merge([$seciliKategori->id], $altTum));
+                $query->whereIn('kategori_id', $ids);
+                $altKategoriler = $seciliKategori->children;
+                
+                // Breadcrumb
+                $temp = $seciliKategori;
+                while ($temp) {
+                    array_unshift($breadcrumbs, $temp);
+                    $temp = $temp->parent;
+                }
+            }
+        }
+        
+        // Marka filtresi
+        if ($request->marka_id) {
+            $query->where('marka_id', $request->marka_id);
+        }
+        
+        // Arama filtresi
+        if ($request->q) {
+            $q = $request->q;
+            $query->where(function($subQuery) use ($q) {
+                $subQuery->where('ad', 'like', "%{$q}%")
+                         ->orWhere('aciklama', 'like', "%{$q}%")
+                         ->orWhere('sku', 'like', "%{$q}%");
+            });
+        }
+        
+        // Fiyat filtresi
+        if ($request->min_fiyat) {
+            $query->where('fiyat', '>=', $request->min_fiyat);
+        }
+        if ($request->max_fiyat) {
+            $query->where('fiyat', '<=', $request->max_fiyat);
+        }
+        
+        // Sıralama
+        $sirala = $request->sirala ?? 'yeni';
+        switch ($sirala) {
+            case 'fiyat_artan':
+                $query->orderBy('fiyat', 'asc');
+                break;
+            case 'fiyat_azalan':
+                $query->orderBy('fiyat', 'desc');
+                break;
+            case 'isim':
+                $query->orderBy('ad', 'asc');
+                break;
+            case 'populer':
+                $query->orderBy('goruntulenme', 'desc');
+                break;
+            default:
+                $query->latest('id');
+                break;
+        }
+        
+        $urunler = $query->paginate(24);
+        
+        // Sidebar verileri
+        $kategoriler = Kategori::whereNull('parent_id')->with('children')->orderBy('sira')->get();
+        $markalar = Marka::whereHas('urunler', function($q) {
+            $q->where('durum', true);
+        })->orderBy('ad')->get();
+        
+        // Fiyat aralığı
+        $minFiyat = Urun::where('durum', true)->min('fiyat') ?? 0;
+        $maxFiyat = Urun::where('durum', true)->max('fiyat') ?? 1000;
+        
+        // Site ayarları
+        $siteAyarlar = \App\Models\SiteAyar::pluck('deger', 'anahtar')->toArray();
+        
+        return view('vitrin.magaza', compact(
+            'urunler', 'kategoriler', 'markalar', 'seciliKategori', 'altKategoriler',
+            'breadcrumbs', 'minFiyat', 'maxFiyat', 'siteAyarlar'
+        ));
+    }
+    
     // Arama sayfası
     public function arama(Request $request)
     {
         if (!$request->q) {
-            return redirect()->route('vitrin.index');
+            return redirect()->route('vitrin.magaza');
         }
         
-        return $this->index($request);
+        return $this->magaza($request);
     }
 }

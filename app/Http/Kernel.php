@@ -27,12 +27,21 @@ class Kernel extends HttpKernel
         ],
     ];
 
+    // Laravel 12: middlewareAliases önerilir
+    protected $middlewareAliases = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'bayi' => \App\Http\Middleware\BayiMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'module' => \App\Http\Middleware\ModuleActive::class,
+    ];
+
+    // Eski sürüm uyumluluğu için (bazı paketler routeMiddleware bekleyebilir)
     protected $routeMiddleware = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'bayi' => \App\Http\Middleware\BayiMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'module' => \App\Http\Middleware\ModuleActive::class,
-        // ...existing code...
     ];
 }

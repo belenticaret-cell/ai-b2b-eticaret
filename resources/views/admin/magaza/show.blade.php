@@ -18,10 +18,18 @@
                             class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
                         🔍 Test Et
                     </button>
+                    <label class="flex items-center bg-white/10 rounded-lg px-3 py-2 text-white/90">
+                        <input id="queueSync" type="checkbox" class="mr-2">
+                        Kuyruğa al
+                    </label>
                     <button onclick="syncMagaza({{ $magaza->id }})" 
                             class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
                         🔄 Senkronize
                     </button>
+                    <form action="{{ route('admin.magaza.katalog.cek', $magaza) }}" method="POST" onsubmit="return confirm('Uzak katalog çekilsin mi?')">
+                        @csrf
+                        <button type="submit" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">🗂️ Katalog Çek</button>
+                    </form>
                     <a href="{{ route('admin.magaza.edit', $magaza) }}" 
                        class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
                         ✏️ Düzenle
@@ -208,6 +216,76 @@
     </div>
     @endif
 
+    <!-- Platform Ürünleri (Uzak Katalog) -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+            <h2 class="text-xl font-semibold">🗃️ Platform Ürünleri ({{ $platformUrunleri->total() }})</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Başlık</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fiyat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stok</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eşleşme</th>
+                        <th class="px-6 py-3"></th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($platformUrunleri as $p)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $p->platform_sku ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ Str::limit($p->baslik, 50) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $p->fiyat ? number_format($p->fiyat, 2) . '₺' : '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $p->stok ?? '-' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($p->urun)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Eşleşti ({{ $p->urun->ad }})
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Eşleşmemiş</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                            @if($p->urun)
+                            <form action="{{ route('admin.magaza.urun.gonder', $magaza) }}" method="POST" class="inline">
+                                @csrf
+                                <input type="hidden" name="platform_urun_id" value="{{ $p->id }}" />
+                                <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded">Gönder</button>
+                            </form>
+                            @endif
+                            <details>
+                                <summary class="cursor-pointer text-indigo-600">Eşleştir</summary>
+                                <div class="mt-2">
+                                    <form action="{{ route('admin.magaza.urun.esle', $magaza) }}" method="POST" class="flex items-center space-x-2">
+                                        @csrf
+                                        <input type="hidden" name="platform_urun_id" value="{{ $p->id }}" />
+                                        <select name="urun_id" class="border rounded px-2 py-1">
+                                            @foreach(\App\Models\Urun::orderBy('ad')->limit(200)->get() as $u)
+                                                <option value="{{ $u->id }}">{{ $u->ad }} ({{ $u->sku }})</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="px-3 py-1 bg-indigo-600 text-white rounded">Kaydet</button>
+                                    </form>
+                                </div>
+                            </details>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunamadı. Önce "Katalog Çek" butonunu kullanabilirsiniz.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="px-6 py-4 bg-gray-50">
+            {{ $platformUrunleri->links() }}
+        </div>
+    </div>
     <!-- Senkronizasyon Logları -->
     @if($senkronLoglar->count() > 0)
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -266,13 +344,15 @@ function testConnection(magazaId) {
 
 function syncMagaza(magazaId) {
     if (!confirm('Senkronizasyon işlemi başlatılsın mı?')) return;
-    
+    const queue = document.getElementById('queueSync')?.checked ? 'true' : 'false';
     fetch(`/admin/magaza/${magazaId}/senkronize`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Content-Type': 'application/json'
-        }
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ queue })
     })
     .then(response => response.json())
     .then(data => {

@@ -14,6 +14,10 @@ return [
         'trendyol' => [
             'name' => 'Trendyol',
             'base_url' => 'https://api.trendyol.com/sapigw',
+            // Trendyol dokümantasyonuna göre tüm isteklerde User-Agent zorunlu.
+            // Format: "{supplierId} - {IntegratorName}" (IntegratorName: alfanumerik, max 30 karakter)
+            // .env: TRENDYOL_INTEGRATOR=SelfIntegration
+            'integrator_name' => env('TRENDYOL_INTEGRATOR', 'SelfIntegration'),
             'webhook_events' => [
                 'ORDER_CREATED',
                 'ORDER_CANCELLED',

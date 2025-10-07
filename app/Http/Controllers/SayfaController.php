@@ -36,6 +36,16 @@ class SayfaController extends Controller
         return $this->goster('kullanim-sartlari');
     }
     
+    public function ozelliklerVideolar()
+    {
+        // Eğer veritabanında içerik yoksa fallback olarak statik view göster
+        $sayfa = \App\Models\SayfaIcerik::where('slug', 'ozellikler-ve-videolar')->where('durum', true)->first();
+        if ($sayfa) {
+            return view('sayfa.goster', compact('sayfa'));
+        }
+        return view('sayfa.ozellikler');
+    }
+    
     public function iletisimFormuGonder(Request $request)
     {
         $request->validate([

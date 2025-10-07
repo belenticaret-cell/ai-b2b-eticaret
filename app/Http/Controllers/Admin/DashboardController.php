@@ -24,6 +24,29 @@ class DashboardController extends Controller
             $siteAyarlar = SiteAyar::pluck('deger', 'anahtar')->toArray();
         }
 
+        // Platform istatistikleri
+        $platformStats = [];
+        if (class_exists(Magaza::class)) {
+            $platformStats = [
+                'toplam_magaza' => Magaza::count(),
+                'aktif_magaza' => Magaza::where('aktif', true)->count(),
+                'pasif_magaza' => Magaza::where('aktif', false)->count(),
+                'trendyol' => Magaza::where('platform', 'trendyol')->count(),
+                'hepsiburada' => Magaza::where('platform', 'hepsiburada')->count(),
+                'n11' => Magaza::where('platform', 'n11')->count(),
+                'amazon' => Magaza::where('platform', 'amazon')->count(),
+                'son_24_saat_senkron' => Magaza::where('son_senkron_tarihi', '>=', now()->subDay())->count(),
+            ];
+        }
+
+        // Error tracking stats (mock - gerçek log analizi için geliştirilebilir)
+        $errorStats = [
+            'son_24_saat_hata' => rand(0, 5), // Mock data
+            'basarili_senkron_orani' => rand(85, 98), // Mock data
+            'cloudflare_engel' => rand(0, 3), // Mock data
+            'rate_limit_hata' => rand(0, 2), // Mock data
+        ];
+
         // Ek metrikler
         $stokToplam = 0;
         $stokDegeri = 0.0;
@@ -41,12 +64,40 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        // Son aktiviteler (mock data - gerçek sistem için log analizi)
+        $sonAktiviteler = [
+            [
+                'zaman' => now()->subMinutes(15),
+                'islem' => 'Trendyol katalog çekme',
+                'durum' => 'success',
+                'detay' => '25 ürün güncellendi',
+                'magaza' => 'Test Trendyol Mağaza'
+            ],
+            [
+                'zaman' => now()->subHours(2),
+                'islem' => 'Hepsiburada stok senkronizasyonu',
+                'durum' => 'error',
+                'detay' => 'API bağlantı hatası',
+                'magaza' => 'Hepsiburada Mağaza'
+            ],
+            [
+                'zaman' => now()->subHours(4),
+                'islem' => 'N11 fiyat güncelleme',
+                'durum' => 'success',
+                'detay' => '142 ürün fiyatı güncellendi',
+                'magaza' => 'N11 Mağaza'
+            ],
+        ];
+
         return view('admin.dashboard', [
             'istatistik' => [
                 'urun' => $urunSayisi,
                 'bayi' => $bayiSayisi,
                 'magaza' => $magazaSayisi,
             ],
+            'platformStats' => $platformStats,
+            'errorStats' => $errorStats,
+            'sonAktiviteler' => $sonAktiviteler,
             'sonUrunler' => $sonUrunler,
             'stokToplam' => $stokToplam,
             'stokDegeri' => $stokDegeri,
